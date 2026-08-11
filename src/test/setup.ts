@@ -1,18 +1,28 @@
 const storage = new Map<string, string>()
 
-globalThis.localStorage = {
-  getItem: (key) => storage.get(key) ?? null,
-  setItem: (key, value) => {
+const localStorageMock = {
+  getItem: (key: string) => storage.get(key) ?? null,
+  setItem: (key: string, value: string) => {
     storage.set(key, value)
   },
-  removeItem: (key) => {
+  removeItem: (key: string) => {
     storage.delete(key)
   },
   clear: () => {
     storage.clear()
   },
-  key: (index) => [...storage.keys()][index] ?? null,
+  key: (index: number) => [...storage.keys()][index] ?? null,
   get length() {
     return storage.size
   },
 } as Storage
+
+Object.defineProperty(globalThis, 'window', {
+  value: { localStorage: localStorageMock },
+  configurable: true,
+})
+
+Object.defineProperty(globalThis, 'localStorage', {
+  value: localStorageMock,
+  configurable: true,
+})

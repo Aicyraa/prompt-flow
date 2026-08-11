@@ -1,10 +1,26 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { EdgeChange, NodeChange } from '@xyflow/react'
 import { useFlowStore } from './flowStore'
 import type { FlowEdge } from '../types/flow'
 
+vi.mock('../lib/openrouter', () => ({
+  OPENROUTER_BASE_URL: 'https://openrouter.ai/api/v1',
+  TEST_PROMPT: 'test prompt',
+  createOpenRouterClient: vi.fn(() => ({})),
+  generateText: vi.fn(async () => 'mocked response'),
+}))
+
+vi.mock('react-hot-toast', () => ({
+  default: { success: vi.fn(), error: vi.fn() },
+}))
+
 const resetStore = () =>
-  useFlowStore.setState({ nodes: [], edges: [], selectedNodeId: null })
+  useFlowStore.setState({
+    nodes: [],
+    edges: [],
+    selectedNodeId: null,
+    isRunning: false,
+  })
 
 const edge = (source: string, target: string): FlowEdge => ({
   id: `${source}-${target}`,
@@ -102,5 +118,35 @@ describe('flowStore', () => {
   it('selectNode sets the selected node id', () => {
     useFlowStore.getState().selectNode('abc')
     expect(useFlowStore.getState().selectedNodeId).toBe('abc')
+  })
+
+  it('runFlow executes a chain and updates node statuses and outputs', async () => {
+    const { addNode, connectNodes, updateNodeData } = useFlowStore.getState()
+    addNode('input', { x: 0, y: 0 })
+    addNode('llm', { x: 100, y: 0 })
+    const [a, b] = useFlowStore.getState().nodes
+    updateNodeData(a.id, { text: 'hi' })
+    connectNodes({ source: a.id, target: b.id, sourceHandle: null, targetHandle: null })
+
+    await useFlowStore.getState().runFlow()
+
+    const { nodes, isRunning } = useFlowStore.getState()
+    expect(isRunning).toBe(false)
+    expect(nodes.find((n) => n.id === a.id)!.data.status).toBe('done')
+    expect(nodes.find((n) => n.id === b.id)!.data.status).toBe('done')
+    expect(nodes.find((n) => n.id === b.id)!.data.output).toBe('mocked response')
+  })
+
+  it('runFlow resets previous outputs before executing', async () => {
+    const { addNode, updateNodeData } = useFlowStore.getState()
+    addNode('input', { x: 0, y: 0 })
+    const id = useFlowStore.getState().nodes[0].id
+    updateNodeData(id, { text: 'hello', output: 'stale', status: 'done' })
+
+    await useFlowStore.getState().runFlow()
+
+    const node = useFlowStore.getState().nodes[0]
+    expect(node.data.status).toBe('done')
+    expect(node.data.output).toBe('hello')
   })
 })
