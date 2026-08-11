@@ -23,3 +23,25 @@ body {
   background: transparent !important;
   color: rgba(148, 163, 184, 0.5) !important;
 }
+
+.react-flow__handle {
+  width: 10px;
+  height: 10px;
+  border-radius: 9999px;
+  background: #94a3b8;
+  border: 2px solid #020617;
+}
+
+.react-flow__handle:hover {
+  background: #818cf8;
+}
+
+.react-flow__edge-path {
+  stroke: #64748b;
+  stroke-width: 1.5;
+}
+
+.react-flow__connection-path {
+  stroke: #818cf8;
+  stroke-width: 1.5;
+}
