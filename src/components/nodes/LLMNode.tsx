@@ -47,13 +47,13 @@ export default function LLMNode({ id, data, selected }: NodeProps<FlowNode>) {
       hasTarget
       hasSource
     >
-      <label className="mb-1 block text-[11px] font-medium tracking-wide text-slate-400 uppercase">
+      <label className="mb-1 block text-[11px] font-medium tracking-wide text-charcoal-400 uppercase">
         Model
       </label>
       <select
         value={data.model ?? MODEL_OPTIONS[0]}
         onChange={(e) => updateNodeData(id, { model: e.target.value })}
-        className={`mb-3 w-full rounded-md border border-slate-700 bg-slate-800/70 px-2 py-1.5 text-sm text-slate-100 outline-none ${FOCUS_RINGS.llm}`}
+        className={`mb-3 w-full rounded-md border border-charcoal-700 bg-charcoal-800/70 px-2 py-1.5 text-sm text-charcoal-50 outline-none ${FOCUS_RINGS.llm}`}
       >
         {MODEL_OPTIONS.map((model) => (
           <option key={model} value={model}>
@@ -63,7 +63,7 @@ export default function LLMNode({ id, data, selected }: NodeProps<FlowNode>) {
       </select>
 
       <div className="flex items-center justify-between">
-        <label className="text-[11px] font-medium tracking-wide text-slate-400 uppercase">
+        <label className="text-[11px] font-medium tracking-wide text-charcoal-400 uppercase">
           Temperature
         </label>
         <span className="text-xs text-violet-300">
@@ -119,7 +119,7 @@ export default function LLMNode({ id, data, selected }: NodeProps<FlowNode>) {
       )}
 
       {data.output && !data.error && (
-        <pre className="mt-2 max-h-40 overflow-y-auto rounded-md border border-slate-700 bg-slate-800/70 p-2 text-xs whitespace-pre-wrap text-slate-100">
+        <pre className="mt-2 max-h-40 overflow-y-auto rounded-md border border-charcoal-700 bg-charcoal-800/70 p-2 text-xs whitespace-pre-wrap text-charcoal-50">
           {data.output}
         </pre>
       )}

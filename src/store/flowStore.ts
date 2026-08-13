@@ -9,7 +9,15 @@ import type {
   NodeChange,
   XYPosition,
 } from '@xyflow/react'
-import type { FlowEdge, FlowNode, NodeData, NodeType } from '../types/flow'
+import type {
+  EdgeData,
+  EdgeStyle,
+  FlowEdge,
+  FlowNode,
+  FlowState,
+  NodeData,
+  NodeType,
+} from '../types/flow'
 import { createNode } from '../lib/nodes'
 import { FLOW_VERSION } from '../lib/serialization'
 import { createOpenRouterClient } from '../lib/openrouter'
@@ -17,18 +25,22 @@ import { executeFlow } from '../engine/executeFlow'
 
 export const FLOW_STORAGE_KEY = 'promptflow:flow'
 
-interface FlowStore {
-  nodes: FlowNode[]
-  edges: FlowEdge[]
+interface FlowStore extends FlowState {
   selectedNodeId: string | null
+  selectedEdgeId: string | null
   isRunning: boolean
+  edgeStyle: EdgeStyle
   onNodesChange: (changes: NodeChange<FlowNode>[]) => void
   onEdgesChange: (changes: EdgeChange<FlowEdge>[]) => void
   addNode: (type: NodeType, position: XYPosition) => void
   updateNodeData: (id: string, patch: Partial<NodeData>) => void
   deleteNode: (id: string) => void
-  connectNodes: (connection: Connection) => void
+   connectNodes: (connection: Connection) => void
   selectNode: (id: string | null) => void
+  selectEdge: (id: string | null) => void
+  updateEdgeData: (id: string, patch: Partial<EdgeData>) => void
+  setEdgeStyle: (style: EdgeStyle) => void
+  loadFlow: (nodes: FlowNode[], edges: FlowEdge[], edgeStyle?: EdgeStyle) => void
   clearFlow: () => void
   runFlow: () => Promise<void>
 }
@@ -39,7 +51,9 @@ export const useFlowStore = create<FlowStore>()(
       nodes: [],
       edges: [],
       selectedNodeId: null,
+      selectedEdgeId: null,
       isRunning: false,
+      edgeStyle: 'curved',
 
       onNodesChange: (changes) =>
         set((state) => {
@@ -47,6 +61,9 @@ export const useFlowStore = create<FlowStore>()(
             .filter((c) => c.type === 'remove')
             .map((c) => c.id)
           const nodes = applyNodeChanges(changes, state.nodes)
+          const removedEdgeIds = new Set(
+            changes.filter((c) => c.type === 'remove').map((c) => c.id),
+          )
           const edges =
             removedIds.length === 0
               ? state.edges
@@ -55,11 +72,25 @@ export const useFlowStore = create<FlowStore>()(
                     !removedIds.includes(e.source) &&
                     !removedIds.includes(e.target),
                 )
-          return { nodes, edges }
+          const selectedEdgeId =
+            state.selectedEdgeId && removedEdgeIds.has(state.selectedEdgeId)
+              ? null
+              : state.selectedEdgeId
+          return { nodes, edges, selectedEdgeId }
         }),
 
       onEdgesChange: (changes) =>
-        set((state) => ({ edges: applyEdgeChanges(changes, state.edges) })),
+        set((state) => {
+          const edges = applyEdgeChanges(changes, state.edges)
+          const removed = new Set(
+            changes.filter((c) => c.type === 'remove').map((c) => c.id),
+          )
+          const selectedEdgeId =
+            state.selectedEdgeId && removed.has(state.selectedEdgeId)
+              ? null
+              : state.selectedEdgeId
+          return { edges, selectedEdgeId }
+        }),
 
       addNode: (type, position) =>
         set((state) => ({ nodes: [...state.nodes, createNode(type, position)] })),
@@ -79,7 +110,7 @@ export const useFlowStore = create<FlowStore>()(
             state.selectedNodeId === id ? null : state.selectedNodeId,
         })),
 
-      connectNodes: (connection) =>
+       connectNodes: (connection) =>
         set((state) => ({
           edges: [
             ...state.edges,
@@ -89,14 +120,41 @@ export const useFlowStore = create<FlowStore>()(
               target: connection.target,
               sourceHandle: connection.sourceHandle,
               targetHandle: connection.targetHandle,
-              type: 'smoothstep',
+              type: get().edgeStyle,
+              data: {},
             } satisfies FlowEdge,
           ],
         })),
 
-      selectNode: (id) => set({ selectedNodeId: id }),
+      updateEdgeData: (id, patch) =>
+        set((state) => ({
+          edges: state.edges.map((e) =>
+            e.id === id ? { ...e, data: { ...(e.data ?? {}), ...patch } } : e,
+          ),
+        })),
 
-      clearFlow: () => set({ nodes: [], edges: [], selectedNodeId: null }),
+      setEdgeStyle: (style) =>
+        set((state) => ({
+          edgeStyle: style,
+          // Re-style every existing edge so the change applies globally.
+          edges: state.edges.map((e) => ({ ...e, type: style })),
+        })),
+
+      selectNode: (id) => set({ selectedNodeId: id, selectedEdgeId: null }),
+
+      selectEdge: (id) => set({ selectedEdgeId: id, selectedNodeId: null }),
+
+  loadFlow: (nodes, edges, edgeStyle = 'curved') =>
+    set({
+      nodes,
+      edges,
+      selectedNodeId: null,
+      selectedEdgeId: null,
+      edgeStyle,
+    }),
+
+      clearFlow: () =>
+        set({ nodes: [], edges: [], selectedNodeId: null, selectedEdgeId: null }),
 
       runFlow: async () => {
         if (get().isRunning) return
@@ -152,9 +210,49 @@ export const useFlowStore = create<FlowStore>()(
     {
       name: FLOW_STORAGE_KEY,
       version: FLOW_VERSION,
+      migrate: (persisted: unknown) => {
+        // zustand passes the stored state slice; older stores or the wrapper
+        // format may nest it under a `state` key, so normalize both shapes.
+        const raw = (
+          persisted && typeof persisted === 'object' ? persisted : {}
+        ) as {
+          nodes?: FlowNode[]
+          edges?: FlowEdge[]
+          edgeStyle?: string
+          state?: {
+            nodes?: FlowNode[]
+            edges?: FlowEdge[]
+            edgeStyle?: string
+          }
+        }
+        const inner = raw.state ?? raw
+        const nodes: FlowNode[] = inner.nodes ?? []
+        const edges: FlowEdge[] = (inner.edges ?? []).map(
+          (e: { type?: string; data?: Record<string, unknown> }) =>
+            ({
+              ...e,
+              type:
+                e.type === 'smoothstep' ||
+                e.type === 'default' ||
+                e.type === 'auto'
+                  ? ('curved' as const)
+                  : e.type,
+              data: { bend: 0, ...(e.data ?? {}) },
+            }) as FlowEdge,
+        )
+        return {
+          nodes,
+          edges,
+          edgeStyle:
+            inner.edgeStyle === 'auto'
+              ? 'curved'
+              : (inner.edgeStyle ?? 'curved'),
+        }
+      },
       partialize: (state) => ({
         nodes: state.nodes.map(({ selected: _selected, ...node }) => node),
         edges: state.edges,
+        edgeStyle: state.edgeStyle,
       }),
     },
   ),

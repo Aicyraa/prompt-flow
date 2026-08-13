@@ -1,24 +1,32 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import toast from 'react-hot-toast'
 import {
   ReactFlow,
   Background,
   BackgroundVariant,
+  BezierEdge,
   Controls,
+  SmoothStepEdge,
+  StepEdge,
+  StraightEdge,
   useReactFlow,
   type Connection,
+  type EdgeChange,
   type IsValidConnection,
   type OnConnect,
 } from '@xyflow/react'
-import type { NodeType } from '../types/flow'
+import type { FlowEdge, NodeType } from '../types/flow'
 import { canConnect } from '../lib/connections'
 import { useFlowStore } from '../store/flowStore'
 import InputNode from './nodes/InputNode'
 import PromptNode from './nodes/PromptNode'
 import LLMNode from './nodes/LLMNode'
 import OutputNode from './nodes/OutputNode'
+import CurvedEdge from './edges/CurvedEdge'
 import Toolbar from './panels/Toolbar'
+import ExtendedToolbar from './panels/ExtendedToolbar'
 import NodeConfigPanel from './panels/NodeConfigPanel'
+import EdgeConfigPanel from './panels/EdgeConfigPanel'
 
 const nodeTypes = {
   input: InputNode,
@@ -27,7 +35,15 @@ const nodeTypes = {
   output: OutputNode,
 }
 
-const defaultEdgeOptions = { type: 'smoothstep' }
+const edgeTypes = {
+  curved: CurvedEdge,
+  bezier: BezierEdge,
+  smoothstep: SmoothStepEdge,
+  step: StepEdge,
+  straight: StraightEdge,
+} as const
+
+const defaultEdgeOptions = { type: 'curved' } as const
 
 export default function Canvas() {
   const nodes = useFlowStore((s) => s.nodes)
@@ -35,16 +51,20 @@ export default function Canvas() {
   const onNodesChange = useFlowStore((s) => s.onNodesChange)
   const onEdgesChange = useFlowStore((s) => s.onEdgesChange)
   const onConnect = useFlowStore((s) => s.connectNodes)
-  const selectNode = useFlowStore((s) => s.selectNode)
-  const { screenToFlowPosition } = useReactFlow()
+   const selectNode = useFlowStore((s) => s.selectNode)
+   const selectEdge = useFlowStore((s) => s.selectEdge)
+   const { screenToFlowPosition } = useReactFlow()
 
   const addNode = useCallback(
     (type: NodeType) => {
-      const offset = useFlowStore.getState().nodes.length % 5
-      const position = screenToFlowPosition({
-        x: window.innerWidth / 2 + offset * 28,
-        y: window.innerHeight / 2 + offset * 28,
-      })
+      const count = useFlowStore.getState().nodes.length
+      // Place new nodes on a horizontal spread so they don't stack on top of
+      // each other (each node is wide). Vertical alternates slightly for a
+      // staggered, readable layout.
+      const stride = 320
+      const x = window.innerWidth / 2 + count * stride - stride
+      const y = window.innerHeight / 2 + (count % 2 === 0 ? 0 : 40)
+      const position = screenToFlowPosition({ x, y })
       useFlowStore.getState().addNode(type, position)
     },
     [screenToFlowPosition],
@@ -74,16 +94,47 @@ export default function Canvas() {
   )
 
   const handleSelectionChange = useCallback(
-    ({ nodes: selected }: { nodes: { id: string }[] }) => {
-      selectNode(selected[0]?.id ?? null)
+    ({ nodes: selected, edges: selectedEdges }: { nodes: { id: string }[]; edges: { id: string }[] }) => {
+      // Selecting a node clears edge selection; selecting an edge clears node selection.
+      if (selectedEdges && selectedEdges.length > 0) {
+        selectEdge(selectedEdges[0].id ?? null)
+        return
+      }
+      if (selected && selected.length > 0) {
+        selectNode(selected[0].id ?? null)
+      }
     },
-    [selectNode],
+    [selectNode, selectEdge],
   )
+
+  // Delete the selected edge with the keyboard. React Flow's native keydown
+  // selection is unreliable for our custom curved edges (see edge-interaction
+  // note in styles/index.css), so we own the Delete shortcut here.
+  const selectedEdgeId = useFlowStore((s) => s.selectedEdgeId)
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Delete' && e.key !== 'Backspace') return
+      const active = document.activeElement
+      const inInput =
+        active &&
+        (active.tagName === 'INPUT' ||
+          active.tagName === 'TEXTAREA' ||
+          (active as HTMLElement).contentEditable === 'true')
+      if (inInput) return
+      if (!selectedEdgeId) return
+      e.preventDefault()
+      onEdgesChange([{ id: selectedEdgeId, type: 'remove' } as EdgeChange<FlowEdge>])
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [selectedEdgeId, onEdgesChange])
 
   return (
     <div className="relative h-full w-full">
       <Toolbar onAdd={addNode} />
+      <ExtendedToolbar />
       <NodeConfigPanel />
+      <EdgeConfigPanel />
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -92,18 +143,20 @@ export default function Canvas() {
         onConnect={handleConnect}
         isValidConnection={isValidConnection}
         onSelectionChange={handleSelectionChange}
+        onPaneClick={() => selectEdge(null)}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
         fitView
         minZoom={0.2}
         proOptions={{ hideAttribution: true }}
         className="h-full w-full"
       >
-        <Background
+         <Background
           variant={BackgroundVariant.Dots}
-          gap={20}
-          size={1}
-          color="#334155"
+          gap={22}
+          size={1.25}
+          color="#443B30"
         />
         <Controls />
       </ReactFlow>

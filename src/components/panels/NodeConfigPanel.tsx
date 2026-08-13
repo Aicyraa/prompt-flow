@@ -4,7 +4,7 @@ import { ACCENT_COLORS, FOCUS_RINGS } from '../ui/nodeTheme'
 import type { ReactNode } from 'react'
 
 const inputCls =
-  'w-full rounded-md border border-slate-700 bg-slate-800/70 px-2 py-1.5 text-sm text-slate-100 outline-none'
+  'w-full rounded-md border border-charcoal-700 bg-charcoal-800/70 px-2 py-1.5 text-sm text-charcoal-50 outline-none'
 
 interface FieldProps {
   label: string
@@ -15,11 +15,11 @@ interface FieldProps {
 function Field({ label, children, hint }: FieldProps) {
   return (
     <div>
-      <label className="mb-1 block text-[11px] font-medium tracking-wide text-slate-400 uppercase">
+      <label className="mb-1 block text-[11px] font-medium tracking-wide text-charcoal-400 uppercase">
         {label}
       </label>
       {children}
-      {hint && <p className="mt-1 text-[11px] text-slate-500">{hint}</p>}
+      {hint && <p className="mt-1 text-[11px] text-charcoal-500">{hint}</p>}
     </div>
   )
 }
@@ -44,19 +44,19 @@ export default function NodeConfigPanel() {
     updateNodeData(node.id, patch)
 
   return (
-    <aside className="absolute top-4 right-4 bottom-4 z-10 flex w-72 flex-col overflow-hidden rounded-lg border border-slate-700 bg-slate-900/95 shadow-xl backdrop-blur">
-      <header className="flex items-center gap-2 border-b border-slate-800 p-3">
+    <aside className="absolute top-4 right-4 bottom-4 z-10 flex w-72 flex-col overflow-hidden rounded-xl border border-charcoal-700 bg-charcoal-900/95 shadow-2xl backdrop-blur">
+      <header className="flex items-center gap-2 border-b border-charcoal-800 p-3">
         <span className={`h-4 w-1 rounded-full ${accent}`} />
         <div className="flex-1">
-          <h2 className="text-sm font-semibold text-slate-100">
+          <h2 className="text-sm font-semibold text-charcoal-50">
             Node settings
           </h2>
-          <p className="font-mono text-[10px] text-slate-500">{node.id}</p>
+          <p className="font-mono text-[10px] text-charcoal-600">{node.id}</p>
         </div>
         <button
           type="button"
           onClick={() => selectNode(null)}
-          className="rounded p-1 text-slate-500 transition-colors hover:bg-slate-800 hover:text-slate-200"
+          className="rounded p-1 text-charcoal-500 transition-colors hover:bg-charcoal-800 hover:text-charcoal-200"
           title="Close panel"
         >
           <svg
@@ -147,13 +147,13 @@ export default function NodeConfigPanel() {
         )}
 
         {type === 'output' && (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-charcoal-500">
             Displays the final result of the chain once the flow runs.
           </p>
         )}
       </div>
 
-      <footer className="border-t border-slate-800 p-3">
+      <footer className="border-t border-charcoal-800 p-3">
         <button
           type="button"
           onClick={() => deleteNode(node.id)}

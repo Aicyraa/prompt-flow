@@ -19,11 +19,11 @@ export default function OutputNode({
       hasTarget
     >
       {output ? (
-        <pre className="max-h-48 overflow-y-auto rounded-md border border-slate-700 bg-slate-800/70 p-2 text-sm whitespace-pre-wrap text-slate-100">
+        <pre className="max-h-48 overflow-y-auto rounded-md border border-charcoal-700 bg-charcoal-800/70 p-2 text-sm whitespace-pre-wrap text-charcoal-50">
           {output}
         </pre>
       ) : (
-        <p className="rounded-md border border-dashed border-slate-700 p-3 text-center text-xs text-slate-500">
+        <p className="rounded-md border border-dashed border-charcoal-700 p-3 text-center text-xs text-charcoal-500">
           Connect a source to see the result here
         </p>
       )}

@@ -29,15 +29,15 @@ export default function NodeShell({
 
   return (
     <div
-      className={`w-72 overflow-hidden rounded-lg border bg-slate-900/95 shadow-xl transition-shadow ${
+      className={`w-72 overflow-hidden rounded-xl border-2 bg-charcoal-900/95 shadow-2xl transition-[border-color,box-shadow] duration-150 ${
         selected
-          ? 'border-slate-400 shadow-indigo-500/10'
-          : 'border-slate-700 hover:border-slate-500'
+          ? 'border-indigo-400/60 shadow-indigo-500/10'
+          : 'border-charcoal-700 hover:border-charcoal-500'
       }`}
     >
-      <header className="flex items-center gap-2 border-b border-slate-800 py-2 pl-3 pr-2">
+      <header className="flex items-center gap-2 border-b border-charcoal-800 py-2 pl-3 pr-2">
         <span className={`h-4 w-1 rounded-full ${ACCENT_COLORS[type]}`} />
-        <span className="flex-1 truncate text-xs font-semibold tracking-wide text-slate-200 uppercase">
+        <span className="flex-1 truncate text-xs font-semibold tracking-wide text-charcoal-100 uppercase">
           {label}
         </span>
         <span
@@ -47,7 +47,7 @@ export default function NodeShell({
         <button
           type="button"
           onClick={() => deleteNode(id)}
-          className="rounded p-0.5 text-slate-500 transition-colors hover:bg-slate-800 hover:text-rose-400"
+          className="rounded p-0.5 text-charcoal-500 transition-colors hover:bg-charcoal-800 hover:text-rose-400"
           title="Delete node"
         >
           <svg

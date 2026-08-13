@@ -149,4 +149,62 @@ describe('flowStore', () => {
     expect(node.data.status).toBe('done')
     expect(node.data.output).toBe('hello')
   })
+
+  it('connectNodes creates a curved edge with empty data', () => {
+    const { addNode, connectNodes } = useFlowStore.getState()
+    addNode('input', { x: 0, y: 0 })
+    addNode('llm', { x: 100, y: 0 })
+    const [a, b] = useFlowStore.getState().nodes
+    connectNodes({
+      source: a.id,
+      target: b.id,
+      sourceHandle: null,
+      targetHandle: null,
+    })
+    const [e] = useFlowStore.getState().edges
+    expect(e.type).toBe('curved')
+    expect(e.data).toEqual({})
+  })
+
+  it('updateEdgeData merges a patch onto an edge', () => {
+    useFlowStore.setState((s) => ({
+      ...s,
+      edges: [{ id: 'a-b', source: 'a', target: 'b', type: 'curved', data: { bend: 0 } }],
+    }))
+    useFlowStore.getState().updateEdgeData('a-b', { bend: 0.75 })
+    expect(useFlowStore.getState().edges[0]!.data?.bend).toBe(0.75)
+  })
+
+  it('loadFlow replaces nodes/edges and clears the selection', () => {
+    const { addNode, selectNode } = useFlowStore.getState()
+    addNode('input', { x: 0, y: 0 })
+    const id = useFlowStore.getState().nodes[0].id
+    selectNode(id)
+
+    useFlowStore.getState().loadFlow(
+      [{ id: 'n1', type: 'output', position: { x: 1, y: 1 }, data: { type: 'output' } }],
+      [{ id: 'e1', source: 'n1', target: 'n1', type: 'curved', data: {} }],
+    )
+
+    const state = useFlowStore.getState()
+    expect(state.nodes.map((n) => n.id)).toEqual(['n1'])
+    expect(state.edges.map((e) => e.id)).toEqual(['e1'])
+    expect(state.selectedNodeId).toBeNull()
+  })
+
+  it('migrates legacy "auto" edges to the curved style', () => {
+    const raw = {
+      state: {
+        version: 1,
+        nodes: [],
+        edges: [{ id: 'a-b', source: 'a', target: 'b', type: 'auto' }],
+        edgeStyle: 'auto',
+      },
+    }
+    expect(useFlowStore.persist.getOptions().migrate?.(raw, 1)).toEqual({
+      nodes: [],
+      edges: [{ id: 'a-b', source: 'a', target: 'b', type: 'curved', data: { bend: 0 } }],
+      edgeStyle: 'curved',
+    })
+  })
 })

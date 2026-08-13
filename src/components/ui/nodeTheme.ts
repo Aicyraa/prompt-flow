@@ -8,7 +8,7 @@ export const ACCENT_COLORS: Record<NodeType, string> = {
 }
 
 export const STATUS_DOTS: Record<NodeStatus, string> = {
-  idle: 'bg-slate-500',
+  idle: 'bg-charcoal-500',
   running: 'bg-amber-400 animate-pulse',
   done: 'bg-emerald-400',
   error: 'bg-rose-500',
