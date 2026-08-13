@@ -19,13 +19,12 @@ export interface NodeData {
 
 export type FlowNode = Node<NodeData, NodeType>
 
-/** The visual style of an edge, applied globally and persisted with the flow. */
-export type EdgeStyle =
-  | 'curved'
-  | 'bezier'
-  | 'smoothstep'
-  | 'step'
-  | 'straight'
+/**
+ * The visual style of an edge. Bezier is the only line style — every edge
+ * renders as the wavy cubic arc with a straight lead-in/out and an arrowhead.
+ * Kept as a type so serialized flows can carry (and ignore) legacy values.
+ */
+export type EdgeStyle = 'curved'
 
 /** Edge type string used by React Flow's `edgeTypes` registry. */
 export type FlowEdgeType = EdgeStyle
@@ -40,11 +39,3 @@ export interface FlowState {
   nodes: FlowNode[]
   edges: FlowEdge[]
 }
-
-export const EDGE_STYLES: { value: EdgeStyle; label: string }[] = [
-  { value: 'curved', label: 'Curved' },
-  { value: 'bezier', label: 'Bezier' },
-  { value: 'smoothstep', label: 'Smoothstep' },
-  { value: 'step', label: 'Step' },
-  { value: 'straight', label: 'Straight' },
-]

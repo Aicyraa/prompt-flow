@@ -39,7 +39,6 @@ interface FlowStore extends FlowState {
   selectNode: (id: string | null) => void
   selectEdge: (id: string | null) => void
   updateEdgeData: (id: string, patch: Partial<EdgeData>) => void
-  setEdgeStyle: (style: EdgeStyle) => void
   loadFlow: (nodes: FlowNode[], edges: FlowEdge[], edgeStyle?: EdgeStyle) => void
   clearFlow: () => void
   runFlow: () => Promise<void>
@@ -120,8 +119,8 @@ export const useFlowStore = create<FlowStore>()(
               target: connection.target,
               sourceHandle: connection.sourceHandle,
               targetHandle: connection.targetHandle,
-              type: get().edgeStyle,
-              data: {},
+               type: 'curved' as const,
+               data: {},
             } satisfies FlowEdge,
           ],
         })),
@@ -131,13 +130,6 @@ export const useFlowStore = create<FlowStore>()(
           edges: state.edges.map((e) =>
             e.id === id ? { ...e, data: { ...(e.data ?? {}), ...patch } } : e,
           ),
-        })),
-
-      setEdgeStyle: (style) =>
-        set((state) => ({
-          edgeStyle: style,
-          // Re-style every existing edge so the change applies globally.
-          edges: state.edges.map((e) => ({ ...e, type: style })),
         })),
 
       selectNode: (id) => set({ selectedNodeId: id, selectedEdgeId: null }),
@@ -231,22 +223,16 @@ export const useFlowStore = create<FlowStore>()(
           (e: { type?: string; data?: Record<string, unknown> }) =>
             ({
               ...e,
-              type:
-                e.type === 'smoothstep' ||
-                e.type === 'default' ||
-                e.type === 'auto'
-                  ? ('curved' as const)
-                  : e.type,
+              // Bezier (curved) is the only line style now; legacy edge
+              // types (smoothstep, step, auto, …) coerce into it.
+              type: 'curved' as const,
               data: { bend: 0, ...(e.data ?? {}) },
             }) as FlowEdge,
         )
         return {
           nodes,
           edges,
-          edgeStyle:
-            inner.edgeStyle === 'auto'
-              ? 'curved'
-              : (inner.edgeStyle ?? 'curved'),
+          edgeStyle: 'curved',
         }
       },
       partialize: (state) => ({

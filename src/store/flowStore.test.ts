@@ -192,18 +192,24 @@ describe('flowStore', () => {
     expect(state.selectedNodeId).toBeNull()
   })
 
-  it('migrates legacy "auto" edges to the curved style', () => {
+  it('migrates legacy edge styles to the single curved style', () => {
     const raw = {
       state: {
         version: 1,
         nodes: [],
-        edges: [{ id: 'a-b', source: 'a', target: 'b', type: 'auto' }],
-        edgeStyle: 'auto',
+        edges: [
+          { id: 'a-b', source: 'a', target: 'b', type: 'auto' },
+          { id: 'c-d', source: 'c', target: 'd', type: 'smoothstep' },
+        ],
+        edgeStyle: 'smoothstep',
       },
     }
     expect(useFlowStore.persist.getOptions().migrate?.(raw, 1)).toEqual({
       nodes: [],
-      edges: [{ id: 'a-b', source: 'a', target: 'b', type: 'curved', data: { bend: 0 } }],
+      edges: [
+        { id: 'a-b', source: 'a', target: 'b', type: 'curved', data: { bend: 0 } },
+        { id: 'c-d', source: 'c', target: 'd', type: 'curved', data: { bend: 0 } },
+      ],
       edgeStyle: 'curved',
     })
   })

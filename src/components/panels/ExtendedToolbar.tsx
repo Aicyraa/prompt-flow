@@ -6,6 +6,16 @@ import GuideModal from './GuideModal'
 
 const PANEL_WIDTH = 252
 const CIRCLE = 44
+const EDGE_MARGIN = 4
+
+function clampToViewport(x: number, y: number, width: number, height: number) {
+  const maxX = Math.max(EDGE_MARGIN, window.innerWidth - width - EDGE_MARGIN)
+  const maxY = Math.max(EDGE_MARGIN, window.innerHeight - height - EDGE_MARGIN)
+  return {
+    x: Math.min(Math.max(x, EDGE_MARGIN), maxX),
+    y: Math.min(Math.max(y, EDGE_MARGIN), maxY),
+  }
+}
 
 export default function ExtendedToolbar() {
   const [pos, setPos] = useState(() => ({
@@ -14,6 +24,7 @@ export default function ExtendedToolbar() {
   }))
   const [open, setOpen] = useState(false)
   const [dragging, setDragging] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
   const dragRef = useRef<{
     startX: number
     startY: number
@@ -56,7 +67,10 @@ export default function ExtendedToolbar() {
     const dx = e.clientX - drag.startX
     const dy = e.clientY - drag.startY
     drag.moved = Math.hypot(dx, dy)
-    setPos({ x: drag.origX + dx, y: drag.origY + dy })
+    const el = containerRef.current
+    const width = el?.offsetWidth ?? CIRCLE
+    const height = el?.offsetHeight ?? CIRCLE
+    setPos(clampToViewport(drag.origX + dx, drag.origY + dy, width, height))
   }, [])
 
   const handlePointerUp = useCallback(
@@ -110,6 +124,7 @@ export default function ExtendedToolbar() {
   return (
     <>
       <div
+        ref={containerRef}
         className="absolute z-30"
         style={{
           left: position.x,

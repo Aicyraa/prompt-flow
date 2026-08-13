@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Handle, Position } from '@xyflow/react'
+import { Handle, NodeResizer, Position } from '@xyflow/react'
 import type { NodeStatus, NodeType } from '../../types/flow'
 import { useFlowStore } from '../../store/flowStore'
 import { ACCENT_COLORS, STATUS_DOTS } from './nodeTheme'
@@ -12,6 +12,7 @@ interface NodeShellProps {
   selected?: boolean
   hasTarget?: boolean
   hasSource?: boolean
+  resizable?: boolean
   children: ReactNode
 }
 
@@ -23,19 +24,33 @@ export default function NodeShell({
   selected = false,
   hasTarget = false,
   hasSource = false,
+  resizable = false,
   children,
 }: NodeShellProps) {
   const deleteNode = useFlowStore((s) => s.deleteNode)
 
   return (
     <div
-      className={`w-72 overflow-hidden rounded-xl border-2 bg-charcoal-900/95 shadow-2xl transition-[border-color,box-shadow] duration-150 ${
+      className={`overflow-hidden rounded-xl border-2 bg-charcoal-900/95 shadow-2xl transition-[border-color,box-shadow] duration-150 ${
         selected
           ? 'border-indigo-400/60 shadow-indigo-500/10'
           : 'border-charcoal-700 hover:border-charcoal-500'
       }`}
+      style={resizable ? { width: 288 } : undefined}
     >
-      <header className="flex items-center gap-2 border-b border-charcoal-800 py-2 pl-3 pr-2">
+      {resizable && (
+        <NodeResizer
+          minWidth={200}
+          minHeight={120}
+          maxWidth={720}
+          maxHeight={560}
+          isVisible={selected}
+          color="#38bdf8"
+          lineClassName="react-flow__resize-line"
+          handleClassName="react-flow__resize-handle"
+        />
+      )}
+      <header className="flex items-center gap-2 border-b border-charcoal-800 py-2 pr-2 pl-3">
         <span className={`h-4 w-1 rounded-full ${ACCENT_COLORS[type]}`} />
         <span className="flex-1 truncate text-xs font-semibold tracking-wide text-charcoal-100 uppercase">
           {label}
@@ -65,15 +80,15 @@ export default function NodeShell({
       {hasTarget && (
         <Handle
           type="target"
-          position={Position.Top}
-          className="!-top-[5px]"
+          position={Position.Left}
+          className="!-left-[5px]"
         />
       )}
       {hasSource && (
         <Handle
           type="source"
-          position={Position.Bottom}
-          className="!-bottom-[5px]"
+          position={Position.Right}
+          className="!-right-[5px]"
         />
       )}
     </div>

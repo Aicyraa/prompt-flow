@@ -14,6 +14,13 @@ export const STATUS_DOTS: Record<NodeStatus, string> = {
   error: 'bg-rose-500',
 }
 
+export const STATUS_LABELS: Record<NodeStatus, string> = {
+  idle: 'Idle — connect it to a prompt to run.',
+  running: 'Waiting for upstream inputs, then calls the model.',
+  done: 'Response sent downstream — check the output node.',
+  error: 'Something went wrong during execution.',
+}
+
 export const FOCUS_RINGS: Record<NodeType, string> = {
   input: 'focus:border-emerald-400/60',
   prompt: 'focus:border-amber-400/60',

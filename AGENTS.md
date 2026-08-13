@@ -42,6 +42,7 @@ PromptFlow — a node-based visual canvas for chaining LLM prompts (React Flow +
 
 ## Subagents
 
+- use the global agent ui-interactivity-tester when checking the UI
 - Define subagents under `.opencode/agent/` (project-level) with `mode: subagent` and an explicit `model:` field per the tier rules above.
 - Use them for scoped, well-defined tasks (e.g. a review-only agent, a test-writing agent) rather than open-ended "build the feature" delegation — keep me in the loop on anything architectural.
 

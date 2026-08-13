@@ -4,11 +4,7 @@ import {
   ReactFlow,
   Background,
   BackgroundVariant,
-  BezierEdge,
   Controls,
-  SmoothStepEdge,
-  StepEdge,
-  StraightEdge,
   useReactFlow,
   type Connection,
   type EdgeChange,
@@ -26,7 +22,6 @@ import CurvedEdge from './edges/CurvedEdge'
 import Toolbar from './panels/Toolbar'
 import ExtendedToolbar from './panels/ExtendedToolbar'
 import NodeConfigPanel from './panels/NodeConfigPanel'
-import EdgeConfigPanel from './panels/EdgeConfigPanel'
 
 const nodeTypes = {
   input: InputNode,
@@ -35,12 +30,9 @@ const nodeTypes = {
   output: OutputNode,
 }
 
+// Bezier is the only line style — every edge is the wavy CurvedEdge.
 const edgeTypes = {
   curved: CurvedEdge,
-  bezier: BezierEdge,
-  smoothstep: SmoothStepEdge,
-  step: StepEdge,
-  straight: StraightEdge,
 } as const
 
 const defaultEdgeOptions = { type: 'curved' } as const
@@ -134,7 +126,6 @@ export default function Canvas() {
       <Toolbar onAdd={addNode} />
       <ExtendedToolbar />
       <NodeConfigPanel />
-      <EdgeConfigPanel />
       <ReactFlow
         nodes={nodes}
         edges={edges}

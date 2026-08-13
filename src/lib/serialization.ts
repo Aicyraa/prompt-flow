@@ -1,6 +1,6 @@
 import type { EdgeStyle, FlowEdge, FlowNode } from '../types/flow'
 
-export const FLOW_VERSION = 2
+export const FLOW_VERSION = 3
 
 export interface SerializedFlow {
   version: number
@@ -24,13 +24,7 @@ export function serializeFlow(
   return JSON.stringify(flow)
 }
 
-const VALID_EDGE_STYLES = new Set<EdgeStyle>([
-  'curved',
-  'bezier',
-  'smoothstep',
-  'step',
-  'straight',
-])
+const CURVED_ONLY = 'curved' as const
 
 export function parseFlow(json: string): ParsedFlow {
   try {
@@ -43,14 +37,12 @@ export function parseFlow(json: string): ParsedFlow {
       return {
         nodes: parsed.nodes as FlowNode[],
         edges: parsed.edges as FlowEdge[],
-        edgeStyle:
-          parsed.edgeStyle && VALID_EDGE_STYLES.has(parsed.edgeStyle)
-            ? parsed.edgeStyle
-            : 'curved',
+        // Bezier is the only line style now; legacy styles coerce to it.
+        edgeStyle: CURVED_ONLY,
       }
     }
   } catch {
     // fall through to empty flow
   }
-  return { nodes: [], edges: [], edgeStyle: 'curved' }
+  return { nodes: [], edges: [], edgeStyle: CURVED_ONLY }
 }

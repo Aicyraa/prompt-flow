@@ -13,11 +13,18 @@ describe('serializeFlow', () => {
       { id: 'e1', source: nodes[0].id, target: nodes[1].id },
     ]
 
-    const parsed = parseFlow(serializeFlow(nodes, edges, 'smoothstep'))
+    const parsed = parseFlow(serializeFlow(nodes, edges, 'curved'))
 
     expect(parsed.nodes).toEqual(nodes)
     expect(parsed.edges).toEqual(edges)
-    expect(parsed.edgeStyle).toBe('smoothstep')
+    expect(parsed.edgeStyle).toBe('curved')
+  })
+
+  it('coerces any legacy edge style to curved', () => {
+    const parsed = parseFlow(
+      '{"version":2,"nodes":[],"edges":[],"edgeStyle":"smoothstep"}',
+    )
+    expect(parsed.edgeStyle).toBe('curved')
   })
 
   it('defaults the edge style to curved when absent', () => {

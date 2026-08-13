@@ -1,41 +1,12 @@
-import toast from 'react-hot-toast'
 import type { NodeProps } from '@xyflow/react'
 import type { FlowNode } from '../../types/flow'
+import { DEFAULT_TEMPERATURE, MODEL_OPTIONS } from '../../lib/nodes'
 import { useFlowStore } from '../../store/flowStore'
-import { DEFAULT_MODEL, DEFAULT_TEMPERATURE, MODEL_OPTIONS } from '../../lib/nodes'
-import { createOpenRouterClient, generateText, TEST_PROMPT } from '../../lib/openrouter'
 import NodeShell from '../ui/NodeShell'
-import { FOCUS_RINGS } from '../ui/nodeTheme'
+import { FOCUS_RINGS, STATUS_LABELS } from '../ui/nodeTheme'
 
 export default function LLMNode({ id, data, selected }: NodeProps<FlowNode>) {
   const updateNodeData = useFlowStore((s) => s.updateNodeData)
-  const isRunning = data.status === 'running'
-
-  const handleRun = async () => {
-    const client = createOpenRouterClient()
-    if (!client) {
-      updateNodeData(id, {
-        status: 'error',
-        error: 'No OpenRouter API key found. Add OPENROUTER_API_KEY to .env.',
-      })
-      toast.error('Missing OpenRouter API key')
-      return
-    }
-    updateNodeData(id, { status: 'running', error: undefined, output: undefined })
-    try {
-      const output = await generateText(client, {
-        model: data.model ?? DEFAULT_MODEL,
-        temperature: data.temperature ?? DEFAULT_TEMPERATURE,
-        prompt: TEST_PROMPT,
-      })
-      updateNodeData(id, { output, status: 'done' })
-      toast.success('LLM response received')
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Request failed'
-      updateNodeData(id, { error: message, status: 'error' })
-      toast.error(`LLM call failed: ${message}`)
-    }
-  }
 
   return (
     <NodeShell
@@ -82,47 +53,9 @@ export default function LLMNode({ id, data, selected }: NodeProps<FlowNode>) {
         className="mt-1 w-full accent-violet-400"
       />
 
-      <button
-        type="button"
-        onClick={handleRun}
-        disabled={isRunning}
-        className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-violet-700/50 bg-violet-500/10 px-2 py-1.5 text-xs font-medium text-violet-300 transition-colors hover:bg-violet-500/20 disabled:cursor-not-allowed disabled:opacity-60"
-      >
-        {isRunning ? (
-          <>
-            <svg className="h-3.5 w-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 0 1 8-8v4a4 4 0 0 0-4 4H4z"
-              />
-            </svg>
-            Running…
-          </>
-        ) : (
-          'Run test'
-        )}
-      </button>
-
-      {data.error && (
-        <p className="mt-2 rounded-md border border-rose-900/60 bg-rose-950/40 p-2 text-xs break-words text-rose-300">
-          {data.error}
-        </p>
-      )}
-
-      {data.output && !data.error && (
-        <pre className="mt-2 max-h-40 overflow-y-auto rounded-md border border-charcoal-700 bg-charcoal-800/70 p-2 text-xs whitespace-pre-wrap text-charcoal-50">
-          {data.output}
-        </pre>
-      )}
+      <p className="mt-3 text-[11px] text-charcoal-500">
+        {STATUS_LABELS[data.status ?? 'idle']}
+      </p>
     </NodeShell>
   )
 }
