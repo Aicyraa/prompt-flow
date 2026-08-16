@@ -7,15 +7,15 @@ const STEPS: { title: string; body: string }[] = [
   },
   {
     title: 'Connect them',
-    body: 'Drag from a node’s bottom output handle to the next node’s top input handle. Input › Prompt › LLM › Output is the classic chain.',
+    body: 'Drag from a node’s right output handle to the next node’s left input handle. Input › Prompt › LLM › Output is the classic chain.',
   },
   {
     title: 'Configure each node',
     body: 'Click a node to open its settings. Type prompt text, write a template with {{input}} placeholders, or pick a model and temperature.',
   },
   {
-    title: 'Choose an edge style',
-    body: 'Click a connection line to restyle all edges — Curved is a wavy, adjustable line you can pull with its midpoint handle; Step, Straight, Bezier, and Smoothstep are also available.',
+    title: 'Tune a connection',
+    body: 'Click a connection line to select it. Drag the midpoint handle to bend the curve into the shape you want, or press Delete to remove it.',
   },
   {
     title: 'Run the flow',

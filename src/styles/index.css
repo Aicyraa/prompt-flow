@@ -21,6 +21,10 @@ body {
 }
 
 /* React Flow canvas overrides */
+.react-flow {
+  overflow: hidden;
+}
+
 .react-flow__attribution {
   background: transparent !important;
   color: theme('colors.charcoal.400') !important;

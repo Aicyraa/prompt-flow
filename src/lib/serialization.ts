@@ -1,6 +1,6 @@
 import type { EdgeStyle, FlowEdge, FlowNode } from '../types/flow'
 
-export const FLOW_VERSION = 3
+export const FLOW_VERSION = 4
 
 export interface SerializedFlow {
   version: number

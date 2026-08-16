@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import MarkdownView from '../ui/MarkdownView'
 
 interface OutputModalProps {
@@ -15,9 +16,9 @@ export default function OutputModal({ markdown, onClose }: OutputModalProps) {
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  return (
+  return createPortal(
     <div
-      className="absolute inset-0 z-40 flex items-center justify-center bg-charcoal-950/70 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-sm"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
@@ -50,6 +51,7 @@ export default function OutputModal({ markdown, onClose }: OutputModalProps) {
           <MarkdownView markdown={markdown} />
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

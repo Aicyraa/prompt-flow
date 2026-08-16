@@ -1,5 +1,6 @@
 import { memo, type ReactNode } from 'react'
 import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 
 interface MarkdownViewProps {
   markdown: string
@@ -95,7 +96,9 @@ export default memo(function MarkdownView({
 }: MarkdownViewProps) {
   return (
     <div className={`break-words ${className}`}>
-      <ReactMarkdown components={components}>{markdown}</ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+        {markdown}
+      </ReactMarkdown>
     </div>
   )
 })

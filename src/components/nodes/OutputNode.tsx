@@ -23,7 +23,7 @@ export default function OutputNode({
       status={data.status}
       selected={selected}
       hasTarget
-      resizable
+      width={288}
     >
       {output ? (
         <>

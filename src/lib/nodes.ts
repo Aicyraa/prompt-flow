@@ -12,6 +12,24 @@ export const NODE_LABELS: Record<NodeType, string> = {
   output: 'Output',
 }
 
+/** Fixed flow-space width for nodes whose shell has a locked layout. */
+export const FIXED_NODE_WIDTH = 288
+
+/**
+ * Print a node with a locked width (input/output). React Flow positions the
+ * side handles and edge attachment points against the node's own width, so
+ * it must match the rendered shell or the handles drift toward the centre.
+ */
+export function withFixedWidth(node: FlowNode): FlowNode {
+  if (
+    (node.type === 'input' || node.type === 'output') &&
+    node.width == null
+  ) {
+    return { ...node, width: FIXED_NODE_WIDTH }
+  }
+  return node
+}
+
 export const MODEL_OPTIONS: string[] = [
   'openai/gpt-4o-mini',
   'openai/gpt-4o',
@@ -43,10 +61,10 @@ export function createNode(type: NodeType, position: XYPosition): FlowNode {
       break
   }
 
-  return {
+  return withFixedWidth({
     id: nanoid(),
     type,
     position,
     data,
-  }
+  })
 }

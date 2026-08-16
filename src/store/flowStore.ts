@@ -18,7 +18,7 @@ import type {
   NodeData,
   NodeType,
 } from '../types/flow'
-import { createNode } from '../lib/nodes'
+import { createNode, withFixedWidth } from '../lib/nodes'
 import { FLOW_VERSION } from '../lib/serialization'
 import { createOpenRouterClient } from '../lib/openrouter'
 import { executeFlow } from '../engine/executeFlow'
@@ -138,7 +138,7 @@ export const useFlowStore = create<FlowStore>()(
 
   loadFlow: (nodes, edges, edgeStyle = 'curved') =>
     set({
-      nodes,
+      nodes: nodes.map(withFixedWidth),
       edges,
       selectedNodeId: null,
       selectedEdgeId: null,
@@ -218,7 +218,7 @@ export const useFlowStore = create<FlowStore>()(
           }
         }
         const inner = raw.state ?? raw
-        const nodes: FlowNode[] = inner.nodes ?? []
+        const nodes: FlowNode[] = (inner.nodes ?? []).map(withFixedWidth)
         const edges: FlowEdge[] = (inner.edges ?? []).map(
           (e: { type?: string; data?: Record<string, unknown> }) =>
             ({

@@ -3,9 +3,8 @@ import {
   buildCurvedPath,
   cubicMidpoint,
   bendForOffset,
-  EDGE_BULGE_BASE,
   EDGE_BULGE_RANGE,
-  EDGE_STRAIGHT_ALLOWANCE,
+  EDGE_CONTROL_DISTANCE,
   type Point,
 } from './edgeGeometry'
 
@@ -14,32 +13,41 @@ const t: Point = { x: 400, y: 0 }
 const chordMid = (a: Point, b: Point) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 })
 
 describe('edgeGeometry', () => {
-  it('produces an M + L + C path with the arrow tip at the target', () => {
+  it('produces a single cubic bezier (no straight lead segments)', () => {
     const { d } = buildCurvedPath(s, t)
-    expect(d.startsWith('M 0 0 L')).toBe(true)
-    expect(d).toContain(' C ')
+    expect(d.startsWith('M 0 0 C ')).toBe(true)
+    expect(d).toContain(', ')
     expect(d.endsWith('400 0')).toBe(true)
+    expect(d).not.toContain(' L ')
   })
 
-  it('starts and ends with a straight run before curving', () => {
-    const { d, control } = buildCurvedPath(s, t)
-    // The first segment must run straight along the chord (+x) by the allowance.
-    const allowance = EDGE_STRAIGHT_ALLOWANCE
-    expect(d.startsWith(`M 0 0 L ${allowance} 0`)).toBe(true)
-    // The control point still deviates vertically, so the arc bows.
-    expect(control.y).not.toBeCloseTo(0, 5)
+  it('extends each control point horizontally out of its handle (n8n tangents)', () => {
+    const { control } = buildCurvedPath(s, t)
+    // The source control point sits straight out along the flow axis (+x).
+    const hor = Math.min(EDGE_CONTROL_DISTANCE, 400 * 0.5)
+    expect(control.x).toBeCloseTo(hor, 5)
+    expect(control.y).toBeCloseTo(0, 5)
   })
 
-  it('clamps the straight allowance when the edge is very short', () => {
-    const short = buildCurvedPath({ x: 0, y: 0 }, { x: 30, y: 0 })
-    // allowance = max(0, (30 - 2)/2) = 14, so the L still lands on the chord.
-    expect(short.d.startsWith('M 0 0 L 14 0')).toBe(true)
+  it('keeps level endpoints perfectly straight at bend=0', () => {
+    const { d, mid, control } = buildCurvedPath(s, t, 0)
+    expect(mid.y).toBeCloseTo(0, 5)
+    expect(control.y).toBeCloseTo(0, 5)
+    expect(d).not.toContain(' L ')
   })
 
-  it('midpoint sits on the perpendicular bisector, offset by the bulge', () => {
-    const { mid } = buildCurvedPath(s, t)
+  it('handles a zero-length edge without NaN', () => {
+    const { d, mid, control } = buildCurvedPath(s, s)
+    expect(Number.isNaN(mid.x)).toBe(false)
+    expect(Number.isNaN(mid.y)).toBe(false)
+    expect(Number.isNaN(control.x)).toBe(false)
+    expect(d).not.toContain('NaN')
+  })
+
+  it('midpoint sits on the perpendicular bisector, offset by the bend', () => {
+    const { mid } = buildCurvedPath(s, t, 1)
     const cm = chordMid(s, t)
-    // x stays on the chord midpoint, y bulges perpendicularly (up).
+    // x stays on the chord midpoint, y bulges perpendicularly.
     expect(mid.x).toBeCloseTo(cm.x, 5)
     expect(mid.y).not.toBeCloseTo(0, 5)
   })
@@ -51,23 +59,16 @@ describe('edgeGeometry', () => {
     expect(down).toBeLessThan(0)
   })
 
-  it('bend=0 still produces a (gentle) bulge, not a straight line', () => {
-    const { control } = buildCurvedPath(s, t, 0)
-    expect(control.y).not.toBeCloseTo(0, 5)
-  })
-
-  it('handles a zero-length edge without NaN', () => {
-    const { d, mid, control } = buildCurvedPath(s, s)
-    expect(Number.isNaN(mid.x)).toBe(false)
-    expect(Number.isNaN(mid.y)).toBe(false)
-    expect(Number.isNaN(control.x)).toBe(false)
-    expect(d).not.toContain('NaN')
-  })
-
-  it('scales the bulge with distance', () => {
-    const short = Math.abs(buildCurvedPath(s, { x: 100, y: 0 }, 0).mid.y)
-    const long = Math.abs(buildCurvedPath(s, { x: 1000, y: 0 }, 0).mid.y)
+  it('scales the bulge with distance for a fixed bend', () => {
+    const short = Math.abs(buildCurvedPath(s, { x: 100, y: 0 }, 0.5).mid.y)
+    const long = Math.abs(buildCurvedPath(s, { x: 1000, y: 0 }, 0.5).mid.y)
     expect(long).toBeGreaterThan(short)
+  })
+
+  it('reflects the horizontal control offset when the flow runs backwards', () => {
+    const { control } = buildCurvedPath(t, s)
+    // Source (400,0) flows left toward (0,0): control extends to the left.
+    expect(control.x).toBeLessThan(400)
   })
 
   it('cubicMidpoint weights the control points three times', () => {
@@ -82,17 +83,16 @@ describe('edgeGeometry', () => {
     expect(p.y).toBeCloseTo(7.5, 5)
   })
 
-  it('bendForOffset inverts the bulge offset back into a bend scalar', () => {
+  it('bendForOffset inverts a perpendicular drag back into a bend scalar', () => {
     const distance = 400
-    // Default bend (0): mid offset from chord = 0.75 * baseAmount.
-    const baseOffset = (distance * EDGE_BULGE_BASE) * 0.75
-    expect(bendForOffset(distance, baseOffset)).toBeCloseTo(0, 5)
-    // A larger perpendicular offset yields a positive bend.
-    const more = baseOffset + (distance * EDGE_BULGE_RANGE) * 0.75
-    const bend = bendForOffset(distance, more)
+    // Drag of 0 keeps the straight line (bend 0).
+    expect(bendForOffset(distance, 0)).toBeCloseTo(0, 5)
+    // A perpendicular offset upward yields a positive bend.
+    const bulge = distance * EDGE_BULGE_RANGE * 0.75
+    const bend = bendForOffset(distance, bulge)
     expect(bend).toBeGreaterThan(0)
     expect(bend).toBeLessThanOrEqual(1.5)
     // Negative offset (other side) yields a negative bend.
-    expect(bendForOffset(distance, -more)).toBeLessThan(0)
+    expect(bendForOffset(distance, -bulge)).toBeLessThan(0)
   })
 })

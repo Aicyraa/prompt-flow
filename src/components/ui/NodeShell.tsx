@@ -13,6 +13,7 @@ interface NodeShellProps {
   hasTarget?: boolean
   hasSource?: boolean
   resizable?: boolean
+  width?: number
   children: ReactNode
 }
 
@@ -25,18 +26,19 @@ export default function NodeShell({
   hasTarget = false,
   hasSource = false,
   resizable = false,
+  width,
   children,
 }: NodeShellProps) {
   const deleteNode = useFlowStore((s) => s.deleteNode)
 
   return (
     <div
-      className={`overflow-hidden rounded-xl border-2 bg-charcoal-900/95 shadow-2xl transition-[border-color,box-shadow] duration-150 ${
+      className={`relative rounded-xl border-2 bg-charcoal-900/95 shadow-2xl transition-[border-color,box-shadow] duration-150 ${
         selected
           ? 'border-indigo-400/60 shadow-indigo-500/10'
           : 'border-charcoal-700 hover:border-charcoal-500'
       }`}
-      style={resizable ? { width: 288 } : undefined}
+      style={width != null ? { width } : resizable ? { width: 288 } : undefined}
     >
       {resizable && (
         <NodeResizer

@@ -4,7 +4,7 @@ export interface Point {
 }
 
 export interface CurvedEdgeGeometry {
-  /** SVG path `d` — a straight lead-out/in then a cubic bezier arc. */
+  /** SVG path `d` — a pure cubic bezier arc between the two handles. */
   d: string
   /** Point at the curve's midpoint (the bulge peak). */
   mid: Point
@@ -16,10 +16,10 @@ export interface CurvedEdgeGeometry {
   chordMid: Point
 }
 
-export const EDGE_BULGE_BASE = 0.1 // permanent gentle sweep -> never straight
+export const EDGE_BULGE_BASE = 0 // level endpoints -> clean straight line (n8n style)
 export const EDGE_BULGE_RANGE = 0.35 // per unit of `bend`
-/** Length of the straight run each edge leaves its handles with. */
-export const EDGE_STRAIGHT_ALLOWANCE = 24
+/** Horizontal distance (in flow units) each control point sits off its handle. */
+export const EDGE_CONTROL_DISTANCE = 120
 
 function sub(a: Point, b: Point): Point {
   return { x: a.x - b.x, y: a.y - b.y }
@@ -55,9 +55,9 @@ export function cubicMidpoint(
 }
 
 /**
- * Build a smooth edge between two handle centers: each end leaves its handle
- * along the chord for a short straight run (`EDGE_STRAIGHT_ALLOWANCE`) before
- * the cubic bezier arc, so lines start/stop on a clean tangent.
+ * Build a smooth edge between two handle centers: a single cubic bezier that
+ * leaves each handle perpendicular to the node edge (n8n-style horizontal
+ * tangents) and arcs across, with an adjustable perpendicular bulge.
  */
 export function buildCurvedPath(
   source: Point,
@@ -66,41 +66,27 @@ export function buildCurvedPath(
 ): CurvedEdgeGeometry {
   const delta = sub(target, source)
   const distance = len(delta)
-  const dir = unit(delta)
-
-  // Clamp the allowance so the two straight runs can never overlap.
-  const allowance =
-    distance > 2 * EDGE_STRAIGHT_ALLOWANCE + 2
-      ? EDGE_STRAIGHT_ALLOWANCE
-      : Math.max(0, (distance - 2) / 2)
-  const p1 = {
-    x: source.x + dir.x * allowance,
-    y: source.y + dir.y * allowance,
-  }
-  const p2 = {
-    x: target.x - dir.x * allowance,
-    y: target.y - dir.y * allowance,
-  }
 
   const baseAmount = distance * EDGE_BULGE_BASE
   const bendAmount = distance * EDGE_BULGE_RANGE
   const amount = baseAmount + bend * bendAmount
 
   const n = perp(delta)
-  const chordLen = len(sub(p2, p1))
-  const controlDist = Math.max(allowance, chordLen * 0.4)
+  // Control points extend straight out along the flow axis so the line leaves
+  // and arrives flat against each node side, then arcs smoothly between them.
+  const hor = (delta.x >= 0 ? 1 : -1) * Math.min(EDGE_CONTROL_DISTANCE, distance * 0.5)
   const c1 = {
-    x: p1.x + dir.x * controlDist + n.x * amount,
-    y: p1.y + dir.y * controlDist + n.y * amount,
+    x: source.x + hor,
+    y: source.y + n.y * amount,
   }
   const c2 = {
-    x: p2.x - dir.x * controlDist + n.x * amount,
-    y: p2.y - dir.y * controlDist + n.y * amount,
+    x: target.x - hor,
+    y: target.y + n.y * amount,
   }
 
-  const mid = cubicMidpoint(p1, c1, c2, p2)
+  const mid = cubicMidpoint(source, c1, c2, target)
   const chordMid = { x: (source.x + target.x) / 2, y: (source.y + target.y) / 2 }
-  const d = `M ${source.x} ${source.y} L ${p1.x} ${p1.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${p2.x} ${p2.y} L ${target.x} ${target.y}`
+  const d = `M ${source.x} ${source.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${target.x} ${target.y}`
   return { d, mid, control: c1, normal: n, chordMid }
 }
 

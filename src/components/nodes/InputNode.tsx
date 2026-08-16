@@ -15,6 +15,7 @@ export default function InputNode({ id, data, selected }: NodeProps<FlowNode>) {
       status={data.status}
       selected={selected}
       hasSource
+      width={288}
     >
       <textarea
         value={data.text ?? ''}

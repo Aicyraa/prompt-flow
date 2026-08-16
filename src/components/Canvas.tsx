@@ -122,7 +122,7 @@ export default function Canvas() {
   }, [selectedEdgeId, onEdgesChange])
 
   return (
-    <div className="relative h-full w-full">
+    <div className="relative h-full w-full overflow-hidden">
       <Toolbar onAdd={addNode} />
       <ExtendedToolbar />
       <NodeConfigPanel />
