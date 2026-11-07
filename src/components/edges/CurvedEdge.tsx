@@ -9,9 +9,12 @@ import {
   type Point,
 } from '../../lib/edgeGeometry'
 
+/** Half the 10px connection dot (see `.react-flow__handle` in index.css). */
+const SOURCE_DOT_RADIUS = 5
+
 export default function CurvedEdge({
   id,
-  sourceX,
+  sourceX: handleEdgeX,
   sourceY,
   targetX,
   targetY,
@@ -30,6 +33,9 @@ export default function CurvedEdge({
 
   // Selection is React Flow's own `selected` flag (the single source of truth).
   const active = Boolean(selected)
+  // React Flow starts the line at the dot's outer edge; start it at the dot's
+  // centre instead, so the dot sits on the line rather than beside it.
+  const sourceX = handleEdgeX - SOURCE_DOT_RADIUS
   const source: Point = { x: sourceX, y: sourceY }
   const target: Point = { x: targetX, y: targetY }
   const bend = Number(data?.bend ?? 0)
