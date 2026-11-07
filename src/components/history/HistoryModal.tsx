@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
-import { copyText } from '../../lib/browserFile'
+import { copyText, downloadFile } from '../../lib/browserFile'
+import { buildHistoryReport, reportFilename } from '../../lib/report'
 import { diffLines } from '../../lib/diff'
 import { formatUsage } from '../../lib/format'
 import {
@@ -167,6 +168,20 @@ function HistoryDialog() {
                   className={btn}
                 >
                   Copy result
+                </button>
+                <button
+                  type="button"
+                  onClick={() =>
+                    downloadFile(
+                      reportFilename(new Date(selected.startedAt)),
+                      buildHistoryReport(selected),
+                      'text/markdown',
+                    )
+                  }
+                  title="Download this run as one Markdown report"
+                  className={btn}
+                >
+                  Report .md
                 </button>
                 <button
                   type="button"

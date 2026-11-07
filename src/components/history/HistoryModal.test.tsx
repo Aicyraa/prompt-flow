@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useHistoryStore, type HistoryEntry } from '../../store/historyStore'
@@ -110,5 +110,24 @@ describe('HistoryModal', () => {
     useSettingsStore.setState({ saveHistory: false })
     render(<HistoryModal />)
     expect(screen.getByText('Saving is turned off in Settings')).toBeTruthy()
+  })
+})
+
+describe('HistoryModal report download', () => {
+  it('downloads the selected run as a Markdown report named for when it ran', async () => {
+    const spy = vi.spyOn(await import('../../lib/browserFile'), 'downloadFile')
+    spy.mockImplementation(() => {})
+    const user = userEvent.setup()
+    useHistoryStore.setState({ entries: [run('new', 'The answer')] })
+    useSettingsStore.setState({ historyOpen: true })
+    render(<HistoryModal />)
+    await user.click(screen.getByRole('button', { name: 'Report .md' }))
+    expect(spy).toHaveBeenCalledTimes(1)
+    const [filename, content, type] = spy.mock.calls[0]
+    expect(filename).toBe('promptflow-report-2026-03-01-1001.md')
+    expect(type).toBe('text/markdown')
+    expect(content).toContain('# PromptFlow run report')
+    expect(content).toContain('The answer')
+    spy.mockRestore()
   })
 })
