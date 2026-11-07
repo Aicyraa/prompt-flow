@@ -3,6 +3,7 @@ import { useReactFlow } from '@xyflow/react'
 import type { NodeType } from '../../types/flow'
 import { NODE_LABELS } from '../../lib/nodes'
 import { resolveTheme } from '../../lib/theme'
+import { TEXT_SIZES } from '../../lib/textSize'
 import { useGraphStore } from '../../store/graphStore'
 import { useRunStore } from '../../store/runStore'
 import { useSettingsStore } from '../../store/settingsStore'
@@ -38,6 +39,8 @@ export function useCommands(onAdd: (type: NodeType) => void): Command[] {
   const showMinimap = useSettingsStore((s) => s.showMinimap)
   const theme = useSettingsStore((s) => s.theme)
   const setTheme = useSettingsStore((s) => s.setTheme)
+  const textSize = useSettingsStore((s) => s.nodeTextSize)
+  const setTextSize = useSettingsStore((s) => s.setNodeTextSize)
   const toggleMinimap = useSettingsStore((s) => s.toggleMinimap)
   const openSettings = useSettingsStore((s) => s.openSettings)
   const openHistory = useSettingsStore((s) => s.openHistory)
@@ -169,6 +172,28 @@ export function useCommands(onAdd: (type: NodeType) => void): Command[] {
         keywords: 'appearance dark light mode colours colors',
         run: () => setTheme(resolveTheme(theme) === 'dark' ? 'light' : 'dark'),
       },
+      {
+        id: 'text-bigger',
+        title: 'Increase text size in nodes',
+        group: 'View',
+        keywords: 'font larger zoom text bigger',
+        enabled: textSize !== TEXT_SIZES[TEXT_SIZES.length - 1].value,
+        run: () => {
+          const i = TEXT_SIZES.findIndex((s) => s.value === textSize)
+          setTextSize(TEXT_SIZES[Math.min(TEXT_SIZES.length - 1, i + 1)].value)
+        },
+      },
+      {
+        id: 'text-smaller',
+        title: 'Decrease text size in nodes',
+        group: 'View',
+        keywords: 'font smaller shrink text',
+        enabled: textSize !== TEXT_SIZES[0].value,
+        run: () => {
+          const i = TEXT_SIZES.findIndex((s) => s.value === textSize)
+          setTextSize(TEXT_SIZES[Math.max(0, i - 1)].value)
+        },
+      },
       ...goTo,
       {
         id: 'export',
@@ -245,6 +270,8 @@ export function useCommands(onAdd: (type: NodeType) => void): Command[] {
     toggleMinimap,
     theme,
     setTheme,
+    textSize,
+    setTextSize,
     exportFlow,
     pickFile,
     openHistory,

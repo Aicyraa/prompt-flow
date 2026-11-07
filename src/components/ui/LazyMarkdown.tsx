@@ -18,7 +18,7 @@ export default function LazyMarkdown({
     <Suspense
       fallback={
         <div
-          className={`text-[13px] leading-relaxed break-words whitespace-pre-wrap text-charcoal-200 ${className}`}
+          className={`text-[1em] leading-relaxed break-words whitespace-pre-wrap text-charcoal-200 ${className}`}
         >
           {markdown}
         </div>

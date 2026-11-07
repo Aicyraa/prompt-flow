@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { maskKey } from '../../lib/openrouter'
 import { PROVIDERS } from '../../lib/providers/types'
 import { THEME_PREFS } from '../../lib/theme'
+import TextSizeControl from '../ui/TextSizeControl'
 import { connectKey, syncModels } from '../../store/connection'
 import { useModelStore } from '../../store/modelStore'
 import { useHistoryStore } from '../../store/historyStore'
@@ -79,6 +80,8 @@ function SettingsDialog() {
   const close = useSettingsStore((s) => s.closeSettings)
   const theme = useSettingsStore((s) => s.theme)
   const setTheme = useSettingsStore((s) => s.setTheme)
+  const nodeTextSize = useSettingsStore((s) => s.nodeTextSize)
+  const setNodeTextSize = useSettingsStore((s) => s.setNodeTextSize)
 
   const catalogCount = useModelStore((s) => s.usable.length)
   const hasCatalog = useModelStore((s) => s.hasCatalog)
@@ -222,6 +225,20 @@ function SettingsDialog() {
             </label>
           ))}
         </fieldset>
+
+        <section className="space-y-2 border-t border-charcoal-800 pt-4">
+          <h3 className="text-xs font-semibold text-charcoal-100">
+            Text size in nodes
+          </h3>
+          <TextSizeControl
+            label="Default text size in nodes"
+            value={nodeTextSize}
+            onChange={(size) => size && setNodeTextSize(size)}
+          />
+          <p className="text-[11px] text-charcoal-400">
+            Each node can override this in its own settings.
+          </p>
+        </section>
 
         <section className="space-y-2 border-t border-charcoal-800 pt-4">
           <h3 className="text-xs font-semibold text-charcoal-100">Running</h3>

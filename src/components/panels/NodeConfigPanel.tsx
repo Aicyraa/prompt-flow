@@ -9,6 +9,7 @@ import { useModelStore } from '../../store/modelStore'
 import { selectNodeRun, useRunStore } from '../../store/runStore'
 import { useRunAction } from '../run/useRunAction'
 import NodeIcon from '../ui/NodeIcon'
+import TextSizeControl from '../ui/TextSizeControl'
 import { FOCUS_RINGS } from '../ui/nodeTheme'
 import { CloseIcon, Icon } from '../ui/Icon'
 import { Field, inputClass, Section } from '../ui/fields'
@@ -376,6 +377,20 @@ export default function NodeConfigPanel() {
               />
             )}
           </Field>
+          <div>
+            <p className="mb-1 block text-xs font-medium text-charcoal-200">
+              Text size
+            </p>
+            <TextSizeControl
+              label="Text size in this node"
+              allowDefault
+              value={data.fontSize}
+              onChange={(fontSize) => updateNodeData(node.id, { fontSize })}
+            />
+            <p className="mt-1 text-[11px] text-charcoal-400">
+              Default follows Settings → Appearance.
+            </p>
+          </div>
           {data.type === 'input' && (
             <Field label="Text" hint="Raw text fed into the chain.">
               {(id) => (

@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware'
 import type { KeyInfo } from '../lib/openrouter'
 import { detectByPrefix, type ProviderId } from '../lib/providers/types'
 import type { ThemePref } from '../lib/theme'
+import type { NodeTextSize } from '../types/flow'
+import { DEFAULT_TEXT_SIZE } from '../lib/textSize'
 
 export const SETTINGS_STORAGE_KEY = 'promptflow:settings'
 /** The API key lives under its own key, never inside the flow or settings. */
@@ -68,6 +70,8 @@ interface SettingsStore {
   /** Show the minimap in the corner of the canvas. */
   showMinimap: boolean
   theme: ThemePref
+  /** Default text size inside nodes; a node can override it. */
+  nodeTextSize: NodeTextSize
   paletteOpen: boolean
   guideOpen: boolean
   variablesOpen: boolean
@@ -86,6 +90,7 @@ interface SettingsStore {
   closeHistory: () => void
   toggleMinimap: () => void
   setTheme: (theme: ThemePref) => void
+  setNodeTextSize: (size: NodeTextSize) => void
   openPalette: () => void
   closePalette: () => void
   togglePalette: () => void
@@ -120,6 +125,7 @@ export const useSettingsStore = create<SettingsStore>()(
       recentModels: [],
       showMinimap: true,
       theme: 'system',
+      nodeTextSize: DEFAULT_TEXT_SIZE,
       paletteOpen: false,
       guideOpen: false,
       variablesOpen: false,
@@ -169,6 +175,7 @@ export const useSettingsStore = create<SettingsStore>()(
         set({ costThresholdUsd: Number.isFinite(usd) && usd > 0 ? usd : 0 }),
 
       setTheme: (theme) => set({ theme }),
+      setNodeTextSize: (nodeTextSize) => set({ nodeTextSize }),
       toggleMinimap: () => set((s) => ({ showMinimap: !s.showMinimap })),
       openPalette: () => set({ paletteOpen: true }),
       closePalette: () => set({ paletteOpen: false }),
@@ -210,6 +217,7 @@ export const useSettingsStore = create<SettingsStore>()(
         recentModels: s.recentModels,
         showMinimap: s.showMinimap,
         theme: s.theme,
+        nodeTextSize: s.nodeTextSize,
       }),
     },
   ),

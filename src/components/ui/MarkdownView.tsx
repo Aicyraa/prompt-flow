@@ -55,7 +55,7 @@ function CodeBlock({ children }: WithChildren) {
           {copied ? 'Copied' : 'Copy'}
         </button>
       </div>
-      <pre className="overflow-x-auto p-3 font-mono text-[12px] leading-relaxed text-charcoal-100">
+      <pre className="overflow-x-auto p-3 font-mono text-[0.92em] leading-relaxed text-charcoal-100">
         {children}
       </pre>
     </div>
@@ -64,32 +64,32 @@ function CodeBlock({ children }: WithChildren) {
 
 const components: Components = {
   h1: ({ children }) => (
-    <h1 className="mt-5 mb-3 border-b border-charcoal-700 pb-1.5 text-xl font-bold tracking-tight text-charcoal-50 first:mt-0">
+    <h1 className="mt-5 mb-3 border-b border-charcoal-700 pb-1.5 text-[1.45em] font-bold tracking-tight text-charcoal-50 first:mt-0">
       {children}
     </h1>
   ),
   h2: ({ children }) => (
-    <h2 className="mt-5 mb-2 border-b border-charcoal-800 pb-1 text-base font-semibold text-charcoal-50 first:mt-0">
+    <h2 className="mt-5 mb-2 border-b border-charcoal-800 pb-1 text-[1.2em] font-semibold text-charcoal-50 first:mt-0">
       {children}
     </h2>
   ),
   h3: ({ children }) => (
-    <h3 className="mt-4 mb-1.5 text-sm font-semibold text-violet-200 first:mt-0">
+    <h3 className="mt-4 mb-1.5 text-[1.05em] font-semibold text-violet-200 first:mt-0">
       {children}
     </h3>
   ),
   h4: ({ children }) => (
-    <h4 className="mt-3 mb-1 text-[13px] font-semibold text-charcoal-100 first:mt-0">
+    <h4 className="mt-3 mb-1 text-[1em] font-semibold text-charcoal-100 first:mt-0">
       {children}
     </h4>
   ),
   h5: ({ children }) => (
-    <h5 className="mt-3 mb-1 text-xs font-semibold tracking-wide text-charcoal-200 uppercase first:mt-0">
+    <h5 className="mt-3 mb-1 text-[0.85em] font-semibold tracking-wide text-charcoal-200 uppercase first:mt-0">
       {children}
     </h5>
   ),
   h6: ({ children }) => (
-    <h6 className="mt-3 mb-1 text-xs font-medium text-charcoal-300 first:mt-0">
+    <h6 className="mt-3 mb-1 text-[0.85em] font-medium text-charcoal-300 first:mt-0">
       {children}
     </h6>
   ),
@@ -189,7 +189,9 @@ export default memo(function MarkdownView({
   return (
     <div
       className={`min-w-0 text-left break-words text-charcoal-200 ${
-        size === 'lg' ? 'text-[15px]' : 'text-[13px]'
+        // In a node, text follows the node's own size (set on its body); the
+        // full-size reader has a fixed, comfortable one.
+        size === 'lg' ? 'text-[15px]' : 'text-[1em]'
       } ${className}`}
     >
       <ReactMarkdown

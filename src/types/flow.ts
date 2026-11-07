@@ -4,8 +4,14 @@ export type NodeType = 'input' | 'prompt' | 'llm' | 'merge' | 'output'
 
 export type NodeStatus = 'idle' | 'running' | 'done' | 'error' | 'cancelled'
 
+export type NodeTextSize = 'sm' | 'md' | 'lg' | 'xl'
+
 /** Fields shared by every node kind. */
-type BaseData = { label?: string }
+type BaseData = {
+  label?: string
+  /** Text size inside this node; the global setting applies when absent. */
+  fontSize?: NodeTextSize
+}
 
 export type OutputMode = 'text' | 'json'
 
