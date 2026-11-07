@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, cleanup, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { useGraphStore } from '../../store/graphStore'
@@ -54,5 +54,33 @@ describe('RunLog', () => {
     await user.click(screen.getByRole('button', { name: 'Input' }))
     const selected = useGraphStore.getState().nodes.filter((n) => n.selected)
     expect(selected.map((n) => n.id)).toEqual([a.id])
+  })
+})
+
+describe('RunLog stopping and retry', () => {
+  it('says the run is stopping', () => {
+    const node = useGraphStore.getState().addNode('llm', { x: 0, y: 0 })
+    useRunStore.setState({ isRunning: true, stopping: true })
+    useRunStore.getState().apply({ nodeId: node.id, status: 'running' })
+    render(<RunLog />)
+    expect(screen.getByRole('status').textContent).toMatch(/Stopping/)
+  })
+
+  it('retries a failed step from the log', async () => {
+    const user = userEvent.setup()
+    const node = useGraphStore.getState().addNode('llm', { x: 0, y: 0 })
+    const run = vi.fn(async () => ({ succeeded: true }))
+    useRunStore.setState({ run: run as never, isRunning: false })
+    render(<RunLog />)
+    act(() => {
+      useRunStore.getState().apply({
+        nodeId: node.id,
+        status: 'error',
+        error: 'Rate limited',
+        errorKind: 'rate_limit',
+      })
+    })
+    await user.click(screen.getByRole('button', { name: 'Retry' }))
+    expect(run).toHaveBeenCalledWith({ from: node.id })
   })
 })

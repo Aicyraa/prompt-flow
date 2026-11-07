@@ -3,6 +3,7 @@ import { useGraphStore } from '../../store/graphStore'
 import { totalUsage, useRunStore } from '../../store/runStore'
 import { formatUsage } from '../../lib/format'
 import { useSettingsStore } from '../../store/settingsStore'
+import { useRunAction } from './useRunAction'
 import { Icon } from '../ui/Icon'
 import { STATUS_DOTS, STATUS_LABELS } from '../ui/nodeTheme'
 
@@ -18,6 +19,8 @@ export default function RunLog() {
   const order = useRunStore((s) => s.order)
   const runs = useRunStore((s) => s.nodes)
   const isRunning = useRunStore((s) => s.isRunning)
+  const stopping = useRunStore((s) => s.stopping)
+  const runFlow = useRunAction()
   const graphNodes = useGraphStore((s) => s.nodes)
   const labels = useMemo(
     () =>
@@ -42,15 +45,17 @@ export default function RunLog() {
     if (hasError) setOpen(true)
   }, [hasError])
 
-  const summary = isRunning
-    ? `Running… ${done} done`
-    : hasError
-      ? `Flow stopped: ${runs[failed[0]].error ?? 'error'}`
-      : stopped > 0
-        ? `Run stopped after ${done} steps`
-        : entries.length > 0
-          ? `Flow completed: ${done} steps`
-          : ''
+  const summary = stopping
+    ? 'Stopping the run…'
+    : isRunning
+      ? `Running… ${done} done`
+      : hasError
+        ? `Flow stopped: ${runs[failed[0]].error ?? 'error'}`
+        : stopped > 0
+          ? `Run stopped after ${done} steps`
+          : entries.length > 0
+            ? `Flow completed: ${done} steps`
+            : ''
 
   if (entries.length === 0 && !isRunning) return null
 
@@ -75,13 +80,15 @@ export default function RunLog() {
           <span className="flex-1 font-medium">
             Run log
             <span className="ml-2 font-normal text-charcoal-300">
-              {isRunning
-                ? `${done}/${entries.length}`
-                : hasError
-                  ? `${failed.length} failed`
-                  : stopped > 0
-                    ? 'stopped'
-                    : `${done} done`}
+              {stopping
+                ? 'stopping…'
+                : isRunning
+                  ? `${done}/${entries.length}`
+                  : hasError
+                    ? `${failed.length} failed`
+                    : stopped > 0
+                      ? 'stopped'
+                      : `${done} done`}
               {!isRunning &&
                 totals.promptTokens + totals.completionTokens > 0 && (
                   <span className="ml-2 text-charcoal-400">
@@ -133,13 +140,23 @@ export default function RunLog() {
                   {run.status === 'error' && run.error && (
                     <p className="mt-1 ml-4 text-[11px] leading-relaxed break-words text-rose-300 select-text">
                       {run.error}
-                      {run.errorKind && KEY_ERRORS.has(run.errorKind) && (
+                      {run.errorKind && KEY_ERRORS.has(run.errorKind) ? (
                         <button
                           type="button"
                           onClick={openSettings}
                           className="ml-2 underline"
                         >
                           Open settings
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => void runFlow({ from: id })}
+                          disabled={isRunning}
+                          title="Re-run this node and everything after it, reusing earlier results"
+                          className="ml-2 underline disabled:opacity-50"
+                        >
+                          Retry
                         </button>
                       )}
                     </p>

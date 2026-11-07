@@ -4,6 +4,7 @@ import type { NodeType } from '../../types/flow'
 import { useGraphStore } from '../../store/graphStore'
 import { selectNodeRun, useRunStore } from '../../store/runStore'
 import { useSettingsStore } from '../../store/settingsStore'
+import { useRunAction } from '../run/useRunAction'
 import { CloseIcon, Icon } from './Icon'
 import NodeIcon from './NodeIcon'
 import { STATUS_DOTS, STATUS_LABELS } from './nodeTheme'
@@ -38,6 +39,8 @@ export default function NodeShell({
 }: NodeShellProps) {
   const deleteNode = useGraphStore((s) => s.deleteNode)
   const openSettings = useSettingsStore((s) => s.openSettings)
+  const isRunning = useRunStore((s) => s.isRunning)
+  const runFlow = useRunAction()
   const { status, error, errorKind } = useRunStore(selectNodeRun(id))
 
   return (
@@ -114,13 +117,23 @@ export default function NodeShell({
                 <Icon name="alert" className="mt-px h-3.5 w-3.5 shrink-0" />
                 <span className="break-words">{error}</span>
               </p>
-              {errorKind && KEY_ERRORS.has(errorKind) && (
+              {errorKind && KEY_ERRORS.has(errorKind) ? (
                 <button
                   type="button"
                   onClick={openSettings}
                   className="mt-1.5 rounded border border-rose-400/40 px-2 py-0.5 font-medium text-rose-100 hover:bg-rose-900/40"
                 >
                   Open settings
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => void runFlow({ from: id })}
+                  disabled={isRunning}
+                  title="Re-run this node and everything after it, reusing earlier results"
+                  className="mt-1.5 rounded border border-rose-400/40 px-2 py-0.5 font-medium text-rose-100 hover:bg-rose-900/40 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Retry
                 </button>
               )}
             </div>
