@@ -68,25 +68,35 @@ export default function NodePalette({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}
-        className="flex h-8 items-center gap-1.5 rounded-md border border-charcoal-700 bg-charcoal-800/60 pr-2 pl-2.5 text-xs font-medium text-charcoal-100 transition-[color,background-color,border-color,transform] hover:border-charcoal-500 hover:bg-charcoal-800 active:scale-95"
+        className={`flex h-8 items-center gap-1.5 rounded-md pr-2 pl-2 text-xs font-medium transition-[color,background-color,transform] active:scale-95 ${
+          open
+            ? 'bg-charcoal-800 text-charcoal-50'
+            : 'text-charcoal-200 hover:bg-charcoal-800 hover:text-charcoal-50'
+        }`}
       >
-        <Icon name="plus" className="h-3.5 w-3.5 text-violet-300" />
+        <Icon
+          name="plus"
+          className={`h-3.5 w-3.5 text-violet-300 transition-transform duration-200 ${
+            open ? 'rotate-45' : ''
+          }`}
+        />
         Add node
         <Icon
           name="chevron"
-          className={`h-3.5 w-3.5 text-charcoal-400 transition-transform duration-150 ${
+          className={`h-3.5 w-3.5 text-charcoal-400 transition-transform duration-200 ${
             open ? 'rotate-180' : ''
           }`}
         />
       </button>
 
+      {/* No surrounding card: each choice floats on its own below the bar. */}
       {open && (
         <div
           id={menuId}
           role="menu"
           aria-label="Add a node"
           onKeyDown={onMenuKeyDown}
-          className="animate-pop-in absolute top-full left-0 z-30 mt-1.5 w-64 origin-top-left rounded-xl border border-charcoal-700 bg-charcoal-900 p-1 shadow-2xl"
+          className="absolute top-full left-0 z-30 mt-2 flex flex-col items-start gap-1.5"
         >
           {ITEMS.map(({ type, label, hint }, i) => (
             <button
@@ -96,23 +106,21 @@ export default function NodePalette({
               }}
               type="button"
               role="menuitem"
+              title={hint}
               onClick={() => {
                 onAdd(type)
                 close(false)
               }}
-              className="flex w-full items-center gap-3 rounded-lg px-2.5 py-2 text-left outline-none transition-colors hover:bg-charcoal-800 focus-visible:bg-charcoal-800"
+              style={{ animationDelay: `${i * 45}ms` }}
+              className="group animate-pop-in flex origin-top-left items-center gap-2.5 rounded-full bg-charcoal-900/95 py-1.5 pr-4 pl-1.5 text-left shadow-lg shadow-black/40 outline-none backdrop-blur transition-[background-color,transform] hover:bg-charcoal-800 focus-visible:bg-charcoal-800 focus-visible:ring-2 focus-visible:ring-violet-400/60 active:scale-95"
             >
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-charcoal-700 bg-charcoal-950">
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-charcoal-950 transition-transform group-hover:scale-110">
                 <NodeIcon type={type} />
               </span>
-              <span className="min-w-0">
-                <span className="block text-xs font-medium text-charcoal-50">
-                  {label}
-                </span>
-                <span className="block truncate text-[11px] text-charcoal-400">
-                  {hint}
-                </span>
+              <span className="text-xs font-medium text-charcoal-50">
+                {label}
               </span>
+              <span className="sr-only">{hint}</span>
             </button>
           ))}
         </div>
