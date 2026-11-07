@@ -42,23 +42,25 @@ export default function NodeShell({
 
   return (
     <div
-      className={`relative rounded-xl border-2 bg-charcoal-900/95 shadow-2xl transition-[border-color,box-shadow] duration-150 ${
+      className={`relative flex flex-col rounded-xl border-2 bg-charcoal-900/95 shadow-2xl transition-[border-color,box-shadow] duration-150 ${
+        resizable ? 'h-full w-full min-w-0' : ''
+      } ${
         status === 'error'
           ? 'border-rose-500/60'
           : selected
             ? 'border-indigo-400/60 shadow-indigo-500/10'
             : 'border-charcoal-700 hover:border-charcoal-500'
       }`}
-      style={width != null ? { width } : resizable ? { width: 288 } : undefined}
+      style={!resizable && width != null ? { width } : undefined}
     >
       {resizable && (
         <NodeResizer
-          minWidth={200}
-          minHeight={120}
-          maxWidth={720}
-          maxHeight={560}
+          minWidth={240}
+          minHeight={160}
+          maxWidth={1000}
+          maxHeight={1000}
           isVisible={selected}
-          color="#38bdf8"
+          color="#a78bfa"
           lineClassName="react-flow__resize-line"
           handleClassName="react-flow__resize-handle"
         />
@@ -90,7 +92,9 @@ export default function NodeShell({
         </button>
       </header>
 
-      <div className="p-3">
+      <div
+        className={`p-3 ${resizable ? 'flex min-h-0 flex-1 flex-col' : 'min-w-0'}`}
+      >
         {children}
         {status === 'error' && error && (
           <div

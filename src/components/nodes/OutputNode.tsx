@@ -23,7 +23,7 @@ export default function OutputNode({
       label={data.label ?? 'Output'}
       selected={selected}
       hasTarget
-      width={288}
+      resizable
       actions={
         isRunning ? (
           <button
@@ -52,9 +52,9 @@ export default function OutputNode({
       }
     >
       {output ? (
-        <OutputPreview markdown={output} />
+        <OutputPreview markdown={output} fill filename="output" />
       ) : (
-        <p className="rounded-md border border-dashed border-charcoal-700 p-3 text-center text-xs text-charcoal-400">
+        <p className="flex flex-1 items-center justify-center rounded-md border border-dashed border-charcoal-700 p-3 text-center text-xs text-charcoal-400">
           Run the flow to see the result here
         </p>
       )}

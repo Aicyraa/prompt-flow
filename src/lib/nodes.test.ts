@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { createNode } from './nodes'
+import {
+  createNode,
+  LLM_NODE_WIDTH,
+  OUTPUT_NODE_SIZE,
+  withFixedWidth,
+} from './nodes'
 
 describe('createNode', () => {
   it('creates an input node with empty text', () => {
@@ -29,5 +34,29 @@ describe('createNode', () => {
   it('creates an output node', () => {
     const node = createNode('output', { x: 0, y: 0 })
     expect(node.data.type).toBe('output')
+  })
+})
+
+describe('node sizing', () => {
+  it('gives agent nodes a fixed width and output nodes a default size', () => {
+    const at = { x: 0, y: 0 }
+    expect(createNode('llm', at).width).toBe(LLM_NODE_WIDTH)
+    const out = createNode('output', at)
+    expect(out.width).toBe(OUTPUT_NODE_SIZE.width)
+    expect(out.height).toBe(OUTPUT_NODE_SIZE.height)
+  })
+
+  it('keeps a size the user already chose', () => {
+    const node = withFixedWidth({
+      ...createNode('output', { x: 0, y: 0 }),
+      width: 700,
+      height: 500,
+    })
+    expect([node.width, node.height]).toEqual([700, 500])
+  })
+
+  it('upgrades older saved output nodes that have no height', () => {
+    const old = { ...createNode('output', { x: 0, y: 0 }), height: undefined }
+    expect(withFixedWidth(old).height).toBe(OUTPUT_NODE_SIZE.height)
   })
 })

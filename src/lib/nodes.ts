@@ -14,6 +14,10 @@ export const NODE_LABELS: Record<NodeType, string> = {
 
 /** Fixed flow-space width for nodes whose shell has a locked layout. */
 export const FIXED_NODE_WIDTH = 288
+/** Agent nodes are wider (model picker, previews) but still fixed. */
+export const LLM_NODE_WIDTH = 320
+/** Output nodes start roomy and can be resized by the user. */
+export const OUTPUT_NODE_SIZE = { width: 380, height: 300 }
 
 /**
  * Print a node with a locked width (input/output). React Flow positions the
@@ -21,10 +25,22 @@ export const FIXED_NODE_WIDTH = 288
  * it must match the rendered shell or the handles drift toward the centre.
  */
 export function withFixedWidth(node: FlowNode): FlowNode {
-  if ((node.type === 'input' || node.type === 'output') && node.width == null) {
-    return { ...node, width: FIXED_NODE_WIDTH }
+  switch (node.type) {
+    case 'input':
+      return node.width == null ? { ...node, width: FIXED_NODE_WIDTH } : node
+    case 'llm':
+      return node.width == null ? { ...node, width: LLM_NODE_WIDTH } : node
+    case 'output':
+      return node.width == null || node.height == null
+        ? {
+            ...node,
+            width: node.width ?? OUTPUT_NODE_SIZE.width,
+            height: node.height ?? OUTPUT_NODE_SIZE.height,
+          }
+        : node
+    default:
+      return node
   }
-  return node
 }
 
 export function createNode(type: NodeType, position: XYPosition): FlowNode {

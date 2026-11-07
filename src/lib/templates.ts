@@ -9,7 +9,7 @@ export interface FlowTemplate {
   build: () => { nodes: FlowNode[]; edges: FlowEdge[] }
 }
 
-const COLUMN = 340
+const COLUMN = 400
 
 interface Step {
   type: NodeType

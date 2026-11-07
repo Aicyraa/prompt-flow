@@ -1,6 +1,10 @@
 import type { NodeProps } from '@xyflow/react'
 import type { FlowNode, LlmData } from '../../types/flow'
-import { DEFAULT_MODEL, DEFAULT_TEMPERATURE } from '../../lib/nodes'
+import {
+  DEFAULT_MODEL,
+  DEFAULT_TEMPERATURE,
+  LLM_NODE_WIDTH,
+} from '../../lib/nodes'
 import { useGraphStore } from '../../store/graphStore'
 import { selectNodeRun, useRunStore } from '../../store/runStore'
 import NodeShell from '../ui/NodeShell'
@@ -48,6 +52,7 @@ export default function LLMNode({
       selected={selected}
       hasTarget
       hasSource
+      width={LLM_NODE_WIDTH}
     >
       <label
         htmlFor={`${id}-model`}
@@ -80,7 +85,7 @@ export default function LLMNode({
           <OutputPreview
             markdown={output}
             heightClass="max-h-24"
-            filename="llm-response.md"
+            filename="agent-response"
           />
           {status === 'done' && (
             <p className="mt-0.5 px-1.5 text-[11px] text-charcoal-400">
