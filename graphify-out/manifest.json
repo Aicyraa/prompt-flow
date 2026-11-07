@@ -666,8 +666,8 @@
     "semantic_hash": "da9f7a605956f575df9af20336179625"
   },
   "src/store/graphStore.ts": {
-    "mtime": 1794025979.9819825,
-    "seen": 1794039020.6159391,
+    "mtime": 1794041788.4936728,
+    "seen": 1794042084.4174516,
     "ast_hash": "54078be4ef6707d335bbd8756328fec7",
     "semantic_hash": "54078be4ef6707d335bbd8756328fec7"
   },
@@ -1032,10 +1032,10 @@
     "semantic_hash": "d281918fd4748d8d89af9c37fcd5e62a"
   },
   "e2e/editing.spec.ts": {
-    "mtime": 1794033887.377302,
-    "seen": 1794039020.6156702,
-    "ast_hash": "f6bd9f7f7770d0cf014d574365599e7d",
-    "semantic_hash": "f6bd9f7f7770d0cf014d574365599e7d"
+    "mtime": 1794041902.9983795,
+    "seen": 1794042084.4171169,
+    "ast_hash": "babc2cbdfce6821854a56b512b6a40df",
+    "semantic_hash": ""
   },
   "e2e/first-run.spec.ts": {
     "mtime": 1794033625.7203841,
@@ -1056,10 +1056,10 @@
     "semantic_hash": "4f8a550353605e1d3cffa8d018a669ab"
   },
   "e2e/support.ts": {
-    "mtime": 1794033625.0537317,
-    "seen": 1794039020.615681,
-    "ast_hash": "219ec1183b47d6b37bc49bbfb321ebca",
-    "semantic_hash": "219ec1183b47d6b37bc49bbfb321ebca"
+    "mtime": 1794041806.4716535,
+    "seen": 1794042084.4171288,
+    "ast_hash": "f5c8ec2513881cc9eafdc9e5728efc97",
+    "semantic_hash": ""
   },
   "e2e/variables-merge.spec.ts": {
     "mtime": 1794033625.8563848,
