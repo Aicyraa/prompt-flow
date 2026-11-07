@@ -58,4 +58,35 @@ describe('EmptyState', () => {
     setup()
     expect(screen.queryByRole('button', { name: 'Add key' })).toBeNull()
   })
+
+  it('presents three steps, with the key step marked done once a key exists', () => {
+    const { rerender } = setup()
+    const items = () =>
+      screen.getAllByRole('listitem').filter((li) => li.querySelector('h3'))
+    expect(items().map((li) => li.querySelector('h3')!.textContent)).toEqual([
+      'Add your API key',
+      'Pick a starting point',
+      'Press Run',
+    ])
+    expect(screen.queryByText('(done)')).toBeNull()
+
+    useSettingsStore.setState({ byokEnabled: true, apiKey: 'sk-or-v1-x' })
+    rerender(
+      <ReactFlowProvider>
+        <EmptyState />
+      </ReactFlowProvider>,
+    )
+    expect(screen.getByText('(done)')).toBeTruthy()
+    expect(screen.getByText(/Key added/)).toBeTruthy()
+  })
+
+  it('offers a short tour that opens the guide', async () => {
+    const user = userEvent.setup()
+    useSettingsStore.setState({ guideOpen: false })
+    setup()
+    await user.click(
+      screen.getByRole('button', { name: 'Take the quick tour' }),
+    )
+    expect(useSettingsStore.getState().guideOpen).toBe(true)
+  })
 })

@@ -3,27 +3,31 @@ import Modal from '../ui/Modal'
 const STEPS: { title: string; body: string }[] = [
   {
     title: 'Start from an example',
-    body: 'An empty canvas offers three ready-made flows. Or add nodes from the top bar: Input, Prompt, Agent, Output. A new node connects to the one you have selected.',
+    body: 'An empty canvas offers ready-made flows. Or open Add node and pick Input, Prompt, Agent, Merge or Output. A new node connects to the one you have selected.',
   },
   {
     title: 'Add your API key',
-    body: 'Open Settings, turn on “Use my own API key” and paste a key from OpenRouter, OpenAI, Anthropic, Google, Groq or Mistral. PromptFlow detects the provider and lists the models your key can use. The key stays in this browser and goes only to that provider.',
+    body: 'Open Settings and paste a key from OpenRouter, OpenAI, Anthropic, Google, Groq or Mistral. PromptFlow detects the provider and lists the models your key can use. The key stays in this browser and goes only to that provider.',
   },
   {
     title: 'Configure nodes',
-    body: 'Select a node to see all its settings. Pick any model your key can use, and use {{input}} in a Prompt template to insert upstream text.',
+    body: 'Select a node to see all its settings. Use {{input}} in a Prompt to insert the text from the previous node, or {{name}} for a variable you fill in from the Variables button.',
   },
   {
-    title: 'Tune a connection',
-    body: 'Click a line, then drag its midpoint to bend it, or press Delete to remove it.',
+    title: 'Branch and merge',
+    body: 'One node can feed several others. A Merge node joins their text again, in canvas order, so you can compare answers or hand them to a judge.',
   },
   {
     title: 'Run the flow',
-    body: 'Press Run or Ctrl/⌘+Enter. Each node shows its status; failures appear on the node and in the Run log, with what to do next.',
+    body: 'Press Run on the Output node, or Ctrl/⌘+Enter. Each node shows its status; a failed node has a Retry button that reruns only from there.',
+  },
+  {
+    title: 'Move faster',
+    body: 'Ctrl/⌘+K searches every action and jumps to any node. Tidy arranges the flow, Ctrl/⌘+Z undoes, and F zooms to what you have selected.',
   },
   {
     title: 'Save and share',
-    body: 'Flows save to your browser automatically. Export downloads a .json file (never your key); Import loads one. Press ? to reopen this guide.',
+    body: 'Name a flow in Saved flows and it autosaves in this browser. Export downloads a .json file (never your key). Report .md turns a run into one document. Press ? to reopen this guide.',
   },
 ]
 

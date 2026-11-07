@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import type { NodeType } from '../../types/flow'
 import { useFlowLibrary } from '../../store/flowLibraryStore'
 import { useGraphStore } from '../../store/graphStore'
@@ -44,7 +44,6 @@ function IconButton({
 export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
   const isRunning = useRunStore((s) => s.isRunning)
   const stopRun = useRunStore((s) => s.stop)
-  const hasSeenGuide = useSettingsStore((s) => s.hasSeenGuide)
   const markGuideSeen = useSettingsStore((s) => s.markGuideSeen)
   const openSettings = useSettingsStore((s) => s.openSettings)
   const openHistory = useSettingsStore((s) => s.openHistory)
@@ -71,13 +70,6 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
     (s) => missingVariables(s.nodes, s.variables).length,
   )
   const { tidy } = useViewActions()
-
-  // The guide opens once, automatically, on a first visit.
-  useEffect(() => {
-    if (!hasSeenGuide) openGuide()
-    // Only on mount: closing it marks it seen.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const dismissGuide = () => {
     closeGuide()

@@ -40,10 +40,19 @@ describe('TopBar', () => {
     expect(run).toHaveBeenCalledTimes(1)
   })
 
-  it('opens the guide on a first visit only, and remembers it was seen', async () => {
-    const user = userEvent.setup()
-    useSettingsStore.setState({ hasSeenGuide: false })
+  it('does not throw a dialog at first-time visitors (the empty canvas guides them)', () => {
+    useSettingsStore.setState({ hasSeenGuide: false, guideOpen: false })
     setup()
+    expect(screen.queryByText('How PromptFlow works')).toBeNull()
+  })
+
+  it('opens the guide from the help button, and remembers it was seen on close', async () => {
+    const user = userEvent.setup()
+    useSettingsStore.setState({ hasSeenGuide: false, guideOpen: false })
+    setup()
+    await user.click(
+      screen.getByRole('button', { name: /How PromptFlow works/ }),
+    )
     expect(screen.getByText('How PromptFlow works')).toBeTruthy()
     await user.click(screen.getByRole('button', { name: 'Got it' }))
     expect(useSettingsStore.getState().hasSeenGuide).toBe(true)
