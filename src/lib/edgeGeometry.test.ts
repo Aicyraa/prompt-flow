@@ -10,7 +10,10 @@ import {
 
 const s: Point = { x: 0, y: 0 }
 const t: Point = { x: 400, y: 0 }
-const chordMid = (a: Point, b: Point) => ({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 })
+const chordMid = (a: Point, b: Point) => ({
+  x: (a.x + b.x) / 2,
+  y: (a.y + b.y) / 2,
+})
 
 describe('edgeGeometry', () => {
   it('produces a single cubic bezier (no straight lead segments)', () => {

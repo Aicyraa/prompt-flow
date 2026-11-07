@@ -2,19 +2,51 @@ import type { Node, Edge } from '@xyflow/react'
 
 export type NodeType = 'input' | 'prompt' | 'llm' | 'output'
 
-export type NodeStatus = 'idle' | 'running' | 'done' | 'error'
+export type NodeStatus = 'idle' | 'running' | 'done' | 'error' | 'cancelled'
 
-export interface NodeData {
-  type: NodeType
-  label?: string
-  text?: string
-  template?: string
+/** Fields shared by every node kind. */
+type BaseData = { label?: string }
+
+export type OutputMode = 'text' | 'json'
+
+export type InputData = BaseData & { type: 'input'; text?: string }
+export type PromptData = BaseData & { type: 'prompt'; template?: string }
+export type LlmData = BaseData & {
+  type: 'llm'
   model?: string
   temperature?: number
+  maxTokens?: number
+  reasoningEffort?: string
+  /** Sent as the system message before the upstream text. */
+  system?: string
+  /** Tried in order when the primary model fails (not for auth/credit errors). */
+  fallbackModels?: string[]
+  outputMode?: OutputMode
+}
+export type OutputData = BaseData & { type: 'output' }
+
+/** Discriminated on `type`; narrow with `data.type === '…'`. */
+export type NodeData = InputData | PromptData | LlmData | OutputData
+
+/** Transient execution state for one node. Never persisted or exported. */
+export interface Usage {
+  promptTokens: number
+  completionTokens: number
+  /** USD. From the provider when reported, else computed from catalog prices. */
+  cost?: number
+}
+
+export interface NodeRun {
+  status: NodeStatus
   output?: string
   error?: string
-  status?: NodeStatus
-  [key: string]: unknown
+  /** Why the node failed, so the UI can offer the right fix. */
+  errorKind?: string
+  startedAt?: number
+  endedAt?: number
+  usage?: Usage
+  /** The model that actually answered (differs from the node's when a fallback was used). */
+  model?: string
 }
 
 export type FlowNode = Node<NodeData, NodeType>
@@ -29,10 +61,7 @@ export type EdgeStyle = 'curved'
 /** Edge type string used by React Flow's `edgeTypes` registry. */
 export type FlowEdgeType = EdgeStyle
 
-export interface EdgeData {
-  bend?: number
-  [key: string]: unknown
-}
+export type EdgeData = { bend?: number }
 export type FlowEdge = Edge<EdgeData, FlowEdgeType>
 
 export interface FlowState {

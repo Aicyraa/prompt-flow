@@ -8,7 +8,7 @@ export const DEFAULT_TEMPERATURE = 0.7
 export const NODE_LABELS: Record<NodeType, string> = {
   input: 'Input',
   prompt: 'Prompt',
-  llm: 'LLM',
+  llm: 'Agent',
   output: 'Output',
 }
 
@@ -21,43 +21,32 @@ export const FIXED_NODE_WIDTH = 288
  * it must match the rendered shell or the handles drift toward the centre.
  */
 export function withFixedWidth(node: FlowNode): FlowNode {
-  if (
-    (node.type === 'input' || node.type === 'output') &&
-    node.width == null
-  ) {
+  if ((node.type === 'input' || node.type === 'output') && node.width == null) {
     return { ...node, width: FIXED_NODE_WIDTH }
   }
   return node
 }
 
-export const MODEL_OPTIONS: string[] = [
-  'openai/gpt-4o-mini',
-  'openai/gpt-4o',
-  'anthropic/claude-3.5-sonnet',
-  'google/gemini-1.5-flash',
-  'meta-llama/llama-3.1-8b-instruct',
-]
-
 export function createNode(type: NodeType, position: XYPosition): FlowNode {
-  const data: NodeData = {
-    type,
-    label: NODE_LABELS[type],
-    status: 'idle',
-  }
-
+  const label = NODE_LABELS[type]
+  let data: NodeData
   switch (type) {
     case 'input':
-      data.text = ''
+      data = { type, label, text: '' }
       break
     case 'prompt':
-      data.template = ''
+      data = { type, label, template: '' }
       break
     case 'llm':
-      data.model = DEFAULT_MODEL
-      data.temperature = DEFAULT_TEMPERATURE
+      data = {
+        type,
+        label,
+        model: DEFAULT_MODEL,
+        temperature: DEFAULT_TEMPERATURE,
+      }
       break
     case 'output':
-      data.output = ''
+      data = { type, label }
       break
   }
 

@@ -74,7 +74,8 @@ export function buildCurvedPath(
   const n = perp(delta)
   // Control points extend straight out along the flow axis so the line leaves
   // and arrives flat against each node side, then arcs smoothly between them.
-  const hor = (delta.x >= 0 ? 1 : -1) * Math.min(EDGE_CONTROL_DISTANCE, distance * 0.5)
+  const hor =
+    (delta.x >= 0 ? 1 : -1) * Math.min(EDGE_CONTROL_DISTANCE, distance * 0.5)
   const c1 = {
     x: source.x + hor,
     y: source.y + n.y * amount,
@@ -85,7 +86,10 @@ export function buildCurvedPath(
   }
 
   const mid = cubicMidpoint(source, c1, c2, target)
-  const chordMid = { x: (source.x + target.x) / 2, y: (source.y + target.y) / 2 }
+  const chordMid = {
+    x: (source.x + target.x) / 2,
+    y: (source.y + target.y) / 2,
+  }
   const d = `M ${source.x} ${source.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${target.x} ${target.y}`
   return { d, mid, control: c1, normal: n, chordMid }
 }
