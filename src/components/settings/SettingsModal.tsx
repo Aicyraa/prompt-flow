@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { maskKey } from '../../lib/openrouter'
 import { PROVIDERS } from '../../lib/providers/types'
+import { THEME_PREFS } from '../../lib/theme'
 import { connectKey, syncModels } from '../../store/connection'
 import { useModelStore } from '../../store/modelStore'
 import { useHistoryStore } from '../../store/historyStore'
@@ -76,6 +77,8 @@ function SettingsDialog() {
   const historyCount = useHistoryStore((s) => s.entries.length)
   const clearHistory = useHistoryStore((s) => s.clear)
   const close = useSettingsStore((s) => s.closeSettings)
+  const theme = useSettingsStore((s) => s.theme)
+  const setTheme = useSettingsStore((s) => s.setTheme)
 
   const catalogCount = useModelStore((s) => s.usable.length)
   const hasCatalog = useModelStore((s) => s.hasCatalog)
@@ -93,7 +96,7 @@ function SettingsDialog() {
         <button
           type="button"
           onClick={close}
-          className="w-full rounded-lg border border-violet-400/40 px-3 py-1.5 text-xs font-semibold text-violet-300 transition-colors hover:bg-violet-400/10"
+          className="w-full rounded-lg border border-violet-400/40 px-3 py-1.5 text-xs font-semibold text-violet-300 transition-colors hover:bg-violet-500/10"
         >
           Done
         </button>
@@ -144,7 +147,7 @@ function SettingsDialog() {
                 type="button"
                 onClick={() => void connectKey()}
                 disabled={!apiKey || keyStatus === 'checking'}
-                className={`${btn} border-violet-400/40 text-violet-300 hover:bg-violet-400/10`}
+                className={`${btn} border-violet-400/40 text-violet-300 hover:bg-violet-500/10`}
               >
                 Connect & list models
               </button>
@@ -198,6 +201,27 @@ function SettingsDialog() {
             </fieldset>
           </div>
         }
+
+        <fieldset className="space-y-1.5 border-t border-charcoal-800 pt-4">
+          <legend className="mb-1 text-xs font-semibold text-charcoal-100">
+            Appearance
+          </legend>
+          {THEME_PREFS.map(({ value, label }) => (
+            <label
+              key={value}
+              className="flex cursor-pointer items-center gap-2"
+            >
+              <input
+                type="radio"
+                name="theme"
+                checked={theme === value}
+                onChange={() => setTheme(value)}
+                className="accent-violet-400"
+              />
+              <span className="text-xs text-charcoal-100">{label}</span>
+            </label>
+          ))}
+        </fieldset>
 
         <section className="space-y-2 border-t border-charcoal-800 pt-4">
           <h3 className="text-xs font-semibold text-charcoal-100">Running</h3>

@@ -80,7 +80,13 @@ export default function CurvedEdge({
     e.currentTarget.releasePointerCapture(e.pointerId)
   }, [])
 
-  const stroke = active ? '#a782f7' : flowing ? '#fbbf24' : '#726657'
+  // CSS variables, so edges follow the light/dark theme. They go in `style`
+  // because SVG attributes can't resolve var().
+  const stroke = active
+    ? 'rgb(var(--edge-active))'
+    : flowing
+      ? 'rgb(var(--edge-flow))'
+      : 'rgb(var(--edge))'
   const strokeWidth = active ? 2.5 : 1.5
   const arrowId = `arrow-${id}`
 
@@ -97,7 +103,7 @@ export default function CurvedEdge({
           markerHeight="7"
           orient="auto-start-reverse"
         >
-          <path d="M 0 1 L 9 5 L 0 9 Z" fill={stroke} />
+          <path d="M 0 1 L 9 5 L 0 9 Z" style={{ fill: stroke }} />
         </marker>
       </defs>
 
@@ -105,7 +111,6 @@ export default function CurvedEdge({
       <path
         d={d}
         fill="none"
-        stroke={stroke}
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         markerEnd={`url(#${arrowId})`}
@@ -121,7 +126,7 @@ export default function CurvedEdge({
             : 'animate-draw-in'
         }
         onAnimationEnd={() => setDrawn(true)}
-        style={{ transition: 'stroke 200ms, stroke-width 200ms' }}
+        style={{ stroke, transition: 'stroke 200ms, stroke-width 200ms' }}
       />
 
       {/* Wide invisible hit path so lines are easy to click/select.
@@ -147,7 +152,7 @@ export default function CurvedEdge({
             cy={mid.y}
             r={6}
             fill="transparent"
-            stroke="#a782f7"
+            style={{ stroke: 'rgb(var(--edge-active))' }}
             strokeWidth={1.5}
             pointerEvents="all"
             className="cursor-grab nopan nodrag active:cursor-grabbing"
@@ -174,7 +179,7 @@ export default function CurvedEdge({
             textAnchor="middle"
             dominantBaseline="middle"
             fontSize={12}
-            fill="#fca5a5"
+            style={{ fill: 'rgb(var(--edge-delete))' }}
             pointerEvents="none"
           >
             ×

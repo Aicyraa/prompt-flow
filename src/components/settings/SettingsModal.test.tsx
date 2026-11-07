@@ -82,3 +82,22 @@ describe('SettingsModal', () => {
     expect(sessionStorage.getItem('promptflow:apikey')).toBeNull()
   })
 })
+
+describe('SettingsModal appearance', () => {
+  it('lets you choose light, dark or the system theme', async () => {
+    const user = userEvent.setup()
+    useSettingsStore.setState({ theme: 'system' })
+    render(<SettingsModal />)
+    expect(
+      (
+        screen.getByRole('radio', {
+          name: 'Match my system',
+        }) as HTMLInputElement
+      ).checked,
+    ).toBe(true)
+    await user.click(screen.getByRole('radio', { name: 'Light' }))
+    expect(useSettingsStore.getState().theme).toBe('light')
+    await user.click(screen.getByRole('radio', { name: 'Dark' }))
+    expect(useSettingsStore.getState().theme).toBe('dark')
+  })
+})

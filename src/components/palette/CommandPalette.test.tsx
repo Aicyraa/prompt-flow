@@ -114,4 +114,16 @@ describe('CommandPalette', () => {
     await user.keyboard('{Enter}')
     expect(useSettingsStore.getState().showMinimap).toBe(false)
   })
+
+  it('switches theme from the palette, naming the one you would get', async () => {
+    const user = userEvent.setup()
+    useSettingsStore.setState({ theme: 'dark' })
+    setup()
+    await user.type(search(), 'theme')
+    expect(
+      screen.getByRole('option', { name: /Switch to light theme/ }),
+    ).toBeTruthy()
+    await user.keyboard('{Enter}')
+    expect(useSettingsStore.getState().theme).toBe('light')
+  })
 })

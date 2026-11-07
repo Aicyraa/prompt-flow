@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { KeyInfo } from '../lib/openrouter'
 import { detectByPrefix, type ProviderId } from '../lib/providers/types'
+import type { ThemePref } from '../lib/theme'
 
 export const SETTINGS_STORAGE_KEY = 'promptflow:settings'
 /** The API key lives under its own key, never inside the flow or settings. */
@@ -66,6 +67,7 @@ interface SettingsStore {
   recentModels: string[]
   /** Show the minimap in the corner of the canvas. */
   showMinimap: boolean
+  theme: ThemePref
   paletteOpen: boolean
   guideOpen: boolean
   variablesOpen: boolean
@@ -83,6 +85,7 @@ interface SettingsStore {
   openHistory: () => void
   closeHistory: () => void
   toggleMinimap: () => void
+  setTheme: (theme: ThemePref) => void
   openPalette: () => void
   closePalette: () => void
   togglePalette: () => void
@@ -116,6 +119,7 @@ export const useSettingsStore = create<SettingsStore>()(
       favouriteModels: [],
       recentModels: [],
       showMinimap: true,
+      theme: 'system',
       paletteOpen: false,
       guideOpen: false,
       variablesOpen: false,
@@ -164,6 +168,7 @@ export const useSettingsStore = create<SettingsStore>()(
       setCostThreshold: (usd) =>
         set({ costThresholdUsd: Number.isFinite(usd) && usd > 0 ? usd : 0 }),
 
+      setTheme: (theme) => set({ theme }),
       toggleMinimap: () => set((s) => ({ showMinimap: !s.showMinimap })),
       openPalette: () => set({ paletteOpen: true }),
       closePalette: () => set({ paletteOpen: false }),
@@ -204,6 +209,7 @@ export const useSettingsStore = create<SettingsStore>()(
         favouriteModels: s.favouriteModels,
         recentModels: s.recentModels,
         showMinimap: s.showMinimap,
+        theme: s.theme,
       }),
     },
   ),

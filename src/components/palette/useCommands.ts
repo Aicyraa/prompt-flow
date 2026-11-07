@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useReactFlow } from '@xyflow/react'
 import type { NodeType } from '../../types/flow'
 import { NODE_LABELS } from '../../lib/nodes'
+import { resolveTheme } from '../../lib/theme'
 import { useGraphStore } from '../../store/graphStore'
 import { useRunStore } from '../../store/runStore'
 import { useSettingsStore } from '../../store/settingsStore'
@@ -35,6 +36,8 @@ export function useCommands(onAdd: (type: NodeType) => void): Command[] {
   const isRunning = useRunStore((s) => s.isRunning)
   const stop = useRunStore((s) => s.stop)
   const showMinimap = useSettingsStore((s) => s.showMinimap)
+  const theme = useSettingsStore((s) => s.theme)
+  const setTheme = useSettingsStore((s) => s.setTheme)
   const toggleMinimap = useSettingsStore((s) => s.toggleMinimap)
   const openSettings = useSettingsStore((s) => s.openSettings)
   const openHistory = useSettingsStore((s) => s.openHistory)
@@ -156,6 +159,16 @@ export function useCommands(onAdd: (type: NodeType) => void): Command[] {
         keywords: 'map overview',
         run: toggleMinimap,
       },
+      {
+        id: 'theme',
+        title:
+          resolveTheme(theme) === 'dark'
+            ? 'Switch to light theme'
+            : 'Switch to dark theme',
+        group: 'App',
+        keywords: 'appearance dark light mode colours colors',
+        run: () => setTheme(resolveTheme(theme) === 'dark' ? 'light' : 'dark'),
+      },
       ...goTo,
       {
         id: 'export',
@@ -230,6 +243,8 @@ export function useCommands(onAdd: (type: NodeType) => void): Command[] {
     selectNodeOnly,
     clearFlow,
     toggleMinimap,
+    theme,
+    setTheme,
     exportFlow,
     pickFile,
     openHistory,

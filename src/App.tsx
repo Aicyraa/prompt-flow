@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast'
 import Canvas from './components/Canvas'
 import { syncModels } from './store/connection'
 import { startFlowAutosave } from './store/flowLibraryStore'
+import { applyTheme } from './lib/theme'
 import { useRunStore } from './store/runStore'
 import { useSettingsStore } from './store/settingsStore'
 
@@ -31,6 +32,17 @@ function Dialogs() {
 }
 
 export default function App() {
+  const theme = useSettingsStore((s) => s.theme)
+  // Apply the chosen theme, and follow the system while set to "system".
+  useEffect(() => {
+    applyTheme(theme)
+    if (theme !== 'system' || typeof window.matchMedia !== 'function') return
+    const query = window.matchMedia('(prefers-color-scheme: light)')
+    const onChange = () => applyTheme('system')
+    query.addEventListener('change', onChange)
+    return () => query.removeEventListener('change', onChange)
+  }, [theme])
+
   // Load the model list once (cached for 24h, refreshed in the background).
   useEffect(() => {
     void syncModels()
@@ -48,9 +60,9 @@ export default function App() {
         position="bottom-center"
         toastOptions={{
           style: {
-            background: '#161310',
-            color: '#DED8CF',
-            border: '1px solid #2E2822',
+            background: 'rgb(var(--charcoal-900))',
+            color: 'rgb(var(--charcoal-100))',
+            border: '1px solid rgb(var(--charcoal-700))',
             fontSize: '13px',
             maxWidth: '360px',
           },

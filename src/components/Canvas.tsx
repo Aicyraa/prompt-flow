@@ -195,12 +195,7 @@ export default function Canvas() {
           proOptions={{ hideAttribution: true }}
           className="h-full w-full"
         >
-          <Background
-            variant={BackgroundVariant.Dots}
-            gap={22}
-            size={1.25}
-            color="#443B30"
-          />
+          <Background variant={BackgroundVariant.Dots} gap={22} size={1.25} />
           <Controls />
           {showMinimap && nodes.length > 0 && (
             <MiniMap
@@ -209,9 +204,9 @@ export default function Canvas() {
               ariaLabel="Flow minimap"
               nodeColor={(n) => MINIMAP_COLORS[n.type ?? ''] ?? '#726657'}
               nodeStrokeWidth={0}
-              bgColor="#161310"
-              maskColor="rgba(15, 12, 10, 0.7)"
-              maskStrokeColor="#726657"
+              bgColor="rgb(var(--charcoal-900))"
+              maskColor="rgb(var(--charcoal-950) / 0.7)"
+              maskStrokeColor="rgb(var(--edge))"
               maskStrokeWidth={1}
               className="!rounded-lg !border !border-charcoal-700"
               style={{

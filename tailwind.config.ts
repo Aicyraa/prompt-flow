@@ -5,19 +5,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        charcoal: {
-          50: '#EDE7DE',
-          100: '#DED8CF',
-          200: '#C5BDB0',
-          300: '#A89D87',
-          400: '#8C806B',
-          500: '#726657',
-          600: '#443B30',
-          700: '#2E2822',
-          800: '#211D18',
-          900: '#161310',
-          950: '#0F0C0A',
-        },
+        // Each shade is a CSS variable, so the whole UI can switch theme.
+        charcoal: Object.fromEntries(
+          [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950].map((n) => [
+            n,
+            `rgb(var(--charcoal-${n}) / <alpha-value>)`,
+          ]),
+        ),
       },
       keyframes: {
         'pop-in': {
@@ -25,6 +19,11 @@ export default {
           to: { opacity: '1', transform: 'none' },
         },
         'fade-in': { from: { opacity: '0' }, to: { opacity: '1' } },
+        'fade-out': { from: { opacity: '1' }, to: { opacity: '0' } },
+        'pop-out': {
+          from: { opacity: '1', transform: 'none' },
+          to: { opacity: '0', transform: 'scale(0.96) translateY(4px)' },
+        },
         'fade-up': {
           from: { opacity: '0', transform: 'translateY(8px)' },
           to: { opacity: '1', transform: 'none' },
@@ -66,6 +65,8 @@ export default {
       animation: {
         'pop-in': 'pop-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
         'fade-in': 'fade-in 180ms ease-out backwards',
+        'fade-out': 'fade-out 140ms ease-in forwards',
+        'pop-out': 'pop-out 140ms ease-in forwards',
         'fade-up': 'fade-up 260ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
         'slide-in-right':
           'slide-in-right 240ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
