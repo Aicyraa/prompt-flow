@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import {
   ReactFlow,
@@ -13,14 +13,15 @@ import {
 } from '@xyflow/react'
 import type { FlowEdge, NodeType } from '../types/flow'
 import { canConnect } from '../lib/connections'
-import { useFlowStore } from '../store/flowStore'
+import { useGraphStore } from '../store/graphStore'
 import InputNode from './nodes/InputNode'
 import PromptNode from './nodes/PromptNode'
 import LLMNode from './nodes/LLMNode'
 import OutputNode from './nodes/OutputNode'
 import CurvedEdge from './edges/CurvedEdge'
-import Toolbar from './panels/Toolbar'
-import ExtendedToolbar from './panels/ExtendedToolbar'
+import TopBar from './topbar/TopBar'
+import EmptyState from './run/EmptyState'
+import RunLog from './run/RunLog'
 import NodeConfigPanel from './panels/NodeConfigPanel'
 
 const nodeTypes = {
@@ -38,32 +39,59 @@ const edgeTypes = {
 const defaultEdgeOptions = { type: 'curved' } as const
 
 export default function Canvas() {
-  const nodes = useFlowStore((s) => s.nodes)
-  const edges = useFlowStore((s) => s.edges)
-  const onNodesChange = useFlowStore((s) => s.onNodesChange)
-  const onEdgesChange = useFlowStore((s) => s.onEdgesChange)
-  const onConnect = useFlowStore((s) => s.connectNodes)
-   const selectNode = useFlowStore((s) => s.selectNode)
-   const selectEdge = useFlowStore((s) => s.selectEdge)
-   const { screenToFlowPosition } = useReactFlow()
+  const nodes = useGraphStore((s) => s.nodes)
+  const edges = useGraphStore((s) => s.edges)
+  const onNodesChange = useGraphStore((s) => s.onNodesChange)
+  const onEdgesChange = useGraphStore((s) => s.onEdgesChange)
+  const onConnect = useGraphStore((s) => s.connectNodes)
+  const { screenToFlowPosition } = useReactFlow()
 
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  // New nodes chain onto the single selected node (and connect to it when
+  // allowed); otherwise they appear at the centre of the visible canvas.
   const addNode = useCallback(
     (type: NodeType) => {
-      const count = useFlowStore.getState().nodes.length
-      // Place new nodes on a horizontal spread so they don't stack on top of
-      // each other (each node is wide). Vertical alternates slightly for a
-      // staggered, readable layout.
-      const stride = 320
-      const x = window.innerWidth / 2 + count * stride - stride
-      const y = window.innerHeight / 2 + (count % 2 === 0 ? 0 : 40)
-      const position = screenToFlowPosition({ x, y })
-      useFlowStore.getState().addNode(type, position)
+      const state = useGraphStore.getState()
+      const selected = state.nodes.filter((n) => n.selected)
+      const prev = selected.length === 1 ? selected[0] : undefined
+
+      let position
+      if (prev) {
+        position = { x: prev.position.x + 340, y: prev.position.y }
+      } else {
+        const rect = containerRef.current?.getBoundingClientRect()
+        const cx = (rect?.left ?? 0) + (rect?.width ?? window.innerWidth) / 2
+        const cy = (rect?.top ?? 0) + (rect?.height ?? window.innerHeight) / 2
+        const jitter = (state.nodes.length % 5) * 24
+        position = screenToFlowPosition({
+          x: cx - 144 + jitter,
+          y: cy - 60 + jitter,
+        })
+      }
+
+      const node = state.addNode(type, position)
+      if (
+        prev &&
+        canConnect(
+          { id: prev.id, type: prev.data.type },
+          { id: node.id, type: node.data.type },
+          state.edges,
+        )
+      ) {
+        state.connectNodes({
+          source: prev.id,
+          target: node.id,
+          sourceHandle: null,
+          targetHandle: null,
+        })
+      }
     },
     [screenToFlowPosition],
   )
 
   const isValidConnection: IsValidConnection = useCallback((connection) => {
-    const { nodes, edges } = useFlowStore.getState()
+    const { nodes, edges } = useGraphStore.getState()
     const source = nodes.find((n) => n.id === connection.source)
     const target = nodes.find((n) => n.id === connection.target)
     if (!source || !target) return false
@@ -85,24 +113,12 @@ export default function Canvas() {
     [isValidConnection, onConnect],
   )
 
-  const handleSelectionChange = useCallback(
-    ({ nodes: selected, edges: selectedEdges }: { nodes: { id: string }[]; edges: { id: string }[] }) => {
-      // Selecting a node clears edge selection; selecting an edge clears node selection.
-      if (selectedEdges && selectedEdges.length > 0) {
-        selectEdge(selectedEdges[0].id ?? null)
-        return
-      }
-      if (selected && selected.length > 0) {
-        selectNode(selected[0].id ?? null)
-      }
-    },
-    [selectNode, selectEdge],
-  )
-
   // Delete the selected edge with the keyboard. React Flow's native keydown
   // selection is unreliable for our custom curved edges (see edge-interaction
   // note in styles/index.css), so we own the Delete shortcut here.
-  const selectedEdgeId = useFlowStore((s) => s.selectedEdgeId)
+  const selectedEdgeId = useGraphStore(
+    (s) => s.edges.find((e) => e.selected)?.id,
+  )
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Delete' && e.key !== 'Backspace') return
@@ -115,17 +131,20 @@ export default function Canvas() {
       if (inInput) return
       if (!selectedEdgeId) return
       e.preventDefault()
-      onEdgesChange([{ id: selectedEdgeId, type: 'remove' } as EdgeChange<FlowEdge>])
+      onEdgesChange([
+        { id: selectedEdgeId, type: 'remove' } as EdgeChange<FlowEdge>,
+      ])
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [selectedEdgeId, onEdgesChange])
 
   return (
-    <div className="relative h-full w-full overflow-hidden">
-      <Toolbar onAdd={addNode} />
-      <ExtendedToolbar />
+    <div ref={containerRef} className="relative h-full w-full overflow-hidden">
+      <TopBar onAdd={addNode} />
       <NodeConfigPanel />
+      <EmptyState />
+      <RunLog />
       <ReactFlow
         nodes={nodes}
         edges={edges}
@@ -133,17 +152,16 @@ export default function Canvas() {
         onEdgesChange={onEdgesChange}
         onConnect={handleConnect}
         isValidConnection={isValidConnection}
-        onSelectionChange={handleSelectionChange}
-        onPaneClick={() => selectEdge(null)}
         nodeTypes={nodeTypes}
         edgeTypes={edgeTypes}
         defaultEdgeOptions={defaultEdgeOptions}
         fitView
+        deleteKeyCode={['Backspace', 'Delete']}
         minZoom={0.2}
         proOptions={{ hideAttribution: true }}
         className="h-full w-full"
       >
-         <Background
+        <Background
           variant={BackgroundVariant.Dots}
           gap={22}
           size={1.25}

@@ -1,61 +1,102 @@
 import type { NodeProps } from '@xyflow/react'
-import type { FlowNode } from '../../types/flow'
-import { DEFAULT_TEMPERATURE, MODEL_OPTIONS } from '../../lib/nodes'
-import { useFlowStore } from '../../store/flowStore'
+import type { FlowNode, LlmData } from '../../types/flow'
+import { DEFAULT_MODEL, DEFAULT_TEMPERATURE } from '../../lib/nodes'
+import { useGraphStore } from '../../store/graphStore'
+import { selectNodeRun, useRunStore } from '../../store/runStore'
 import NodeShell from '../ui/NodeShell'
-import { FOCUS_RINGS, STATUS_LABELS } from '../ui/nodeTheme'
+import OutputPreview from '../ui/OutputPreview'
+import ModelPicker from '../models/ModelPicker'
+import { supportsParam, useModelInfo } from '../models/useModelInfo'
+import { FOCUS_RINGS } from '../ui/nodeTheme'
+import { formatUsage } from '../../lib/format'
 
-export default function LLMNode({ id, data, selected }: NodeProps<FlowNode>) {
-  const updateNodeData = useFlowStore((s) => s.updateNodeData)
+export default function LLMNode({
+  id,
+  data,
+  selected,
+}: NodeProps<FlowNode & { data: LlmData }>) {
+  const updateNodeData = useGraphStore((s) => s.updateNodeData)
+  const {
+    status,
+    output,
+    usage,
+    startedAt,
+    endedAt,
+    model: usedModel,
+  } = useRunStore(selectNodeRun(id))
+  const model = data.model ?? DEFAULT_MODEL
+  const info = useModelInfo(model)
+
+  const summary = [
+    supportsParam(info, 'temperature')
+      ? `temp ${(data.temperature ?? DEFAULT_TEMPERATURE).toFixed(1)}`
+      : null,
+    data.maxTokens ? `max ${data.maxTokens}` : null,
+    data.reasoningEffort ? `reasoning ${data.reasoningEffort}` : null,
+    data.system?.trim() ? 'system prompt' : null,
+    data.outputMode === 'json' ? 'JSON' : null,
+    data.fallbackModels?.length
+      ? `${data.fallbackModels.length} fallback${data.fallbackModels.length > 1 ? 's' : ''}`
+      : null,
+  ].filter(Boolean)
 
   return (
     <NodeShell
       id={id}
       type="llm"
-      label={data.label ?? 'LLM'}
-      status={data.status}
+      label={data.label ?? 'Agent'}
       selected={selected}
       hasTarget
       hasSource
     >
-      <label className="mb-1 block text-[11px] font-medium tracking-wide text-charcoal-400 uppercase">
+      <label
+        htmlFor={`${id}-model`}
+        className="mb-1 block text-[11px] font-medium tracking-wide text-charcoal-400 uppercase"
+      >
         Model
       </label>
-      <select
-        value={data.model ?? MODEL_OPTIONS[0]}
-        onChange={(e) => updateNodeData(id, { model: e.target.value })}
-        className={`mb-3 w-full rounded-md border border-charcoal-700 bg-charcoal-800/70 px-2 py-1.5 text-sm text-charcoal-50 outline-none ${FOCUS_RINGS.llm}`}
-      >
-        {MODEL_OPTIONS.map((model) => (
-          <option key={model} value={model}>
-            {model}
-          </option>
-        ))}
-      </select>
-
-      <div className="flex items-center justify-between">
-        <label className="text-[11px] font-medium tracking-wide text-charcoal-400 uppercase">
-          Temperature
-        </label>
-        <span className="text-xs text-violet-300">
-          {(data.temperature ?? DEFAULT_TEMPERATURE).toFixed(1)}
-        </span>
-      </div>
-      <input
-        type="range"
-        min={0}
-        max={2}
-        step={0.1}
-        value={data.temperature ?? DEFAULT_TEMPERATURE}
-        onChange={(e) =>
-          updateNodeData(id, { temperature: Number(e.target.value) })
-        }
-        className="mt-1 w-full accent-violet-400"
+      <ModelPicker
+        id={`${id}-model`}
+        value={model}
+        onChange={(next) => updateNodeData(id, { model: next })}
+        focusClass={FOCUS_RINGS.llm.replace('focus:', 'focus-visible:')}
       />
-
-      <p className="mt-3 text-[11px] text-charcoal-500">
-        {STATUS_LABELS[data.status ?? 'idle']}
+      <p className="mt-1.5 text-[11px] text-charcoal-400">
+        {summary.length ? `${summary.join(' · ')} · ` : ''}
+        select the node to edit all settings
       </p>
+
+      {status === 'running' && output && (
+        <p
+          aria-live="off"
+          className="nodrag mt-3 line-clamp-4 rounded-md border border-charcoal-700 bg-charcoal-800/70 p-2 text-[12px] leading-relaxed whitespace-pre-wrap text-charcoal-200"
+        >
+          {output}
+        </p>
+      )}
+
+      {status !== 'running' && output && (
+        <div className="mt-3">
+          <OutputPreview
+            markdown={output}
+            heightClass="max-h-24"
+            filename="llm-response.md"
+          />
+          {status === 'done' && (
+            <p className="mt-0.5 px-1.5 text-[11px] text-charcoal-400">
+              {usedModel && usedModel !== model && (
+                <span className="mr-1 text-amber-300">
+                  via fallback {usedModel} ·
+                </span>
+              )}
+              {formatUsage(
+                usage,
+                startedAt && endedAt ? endedAt - startedAt : undefined,
+              )}
+            </p>
+          )}
+        </div>
+      )}
     </NodeShell>
   )
 }

@@ -1,8 +1,12 @@
 import { useCallback, useRef, type PointerEvent } from 'react'
 import { useReactFlow, type EdgeProps, type EdgeChange } from '@xyflow/react'
 import type { FlowEdge } from '../../types/flow'
-import { useFlowStore } from '../../store/flowStore'
-import { buildCurvedPath, bendForOffset, type Point } from '../../lib/edgeGeometry'
+import { useGraphStore } from '../../store/graphStore'
+import {
+  buildCurvedPath,
+  bendForOffset,
+  type Point,
+} from '../../lib/edgeGeometry'
 
 export default function CurvedEdge({
   id,
@@ -11,24 +15,20 @@ export default function CurvedEdge({
   targetX,
   targetY,
   data,
+  selected,
 }: EdgeProps<FlowEdge>) {
-  const { updateEdgeData, onEdgesChange, selectEdge, selectedEdgeId } =
-    useFlowStore()
+  const updateEdgeData = useGraphStore((s) => s.updateEdgeData)
+  const onEdgesChange = useGraphStore((s) => s.onEdgesChange)
+  const selectEdgeOnly = useGraphStore((s) => s.selectEdgeOnly)
   const { screenToFlowPosition } = useReactFlow()
 
-  // React Flow's own selection (via the `selected` prop) is unreliable for
-  // custom edges while dragging controls, so we track selection in the store
-  // too and treat this edge as active when the store says so.
-  const active = selectedEdgeId === id
+  // Selection is React Flow's own `selected` flag (the single source of truth).
+  const active = Boolean(selected)
   const source: Point = { x: sourceX, y: sourceY }
   const target: Point = { x: targetX, y: targetY }
-  const bend = Number((data as { bend?: number }).bend ?? 0)
+  const bend = Number(data?.bend ?? 0)
   const distance = Math.hypot(targetX - sourceX, targetY - sourceY)
-  const { d, mid, normal, chordMid } = buildCurvedPath(
-    source,
-    target,
-    bend,
-  )
+  const { d, mid, normal, chordMid } = buildCurvedPath(source, target, bend)
 
   const handleDelete = useCallback(() => {
     onEdgesChange([{ id, type: 'remove' } as EdgeChange<FlowEdge>])
@@ -38,9 +38,9 @@ export default function CurvedEdge({
     (e: PointerEvent<SVGPathElement>) => {
       e.stopPropagation()
       e.preventDefault()
-      selectEdge(id)
+      selectEdgeOnly(id)
     },
-    [id, selectEdge],
+    [id, selectEdgeOnly],
   )
 
   const dragRef = useRef<{ startOffset: number } | null>(null)
@@ -52,8 +52,7 @@ export default function CurvedEdge({
       e.preventDefault()
       const start = screenToFlowPosition({ x: e.clientX, y: e.clientY })
       const offset =
-        (start.x - chordMid.x) * normal.x +
-        (start.y - chordMid.y) * normal.y
+        (start.x - chordMid.x) * normal.x + (start.y - chordMid.y) * normal.y
       dragRef.current = { startOffset: offset }
       e.currentTarget.setPointerCapture(e.pointerId)
     },
@@ -70,15 +69,12 @@ export default function CurvedEdge({
     },
     [id, updateEdgeData, screenToFlowPosition, chordMid, normal, distance],
   )
-  const onPointerUp = useCallback(
-    (e: PointerEvent<SVGCircleElement>) => {
-      dragRef.current = null
-      e.currentTarget.releasePointerCapture(e.pointerId)
-    },
-    [],
-  )
+  const onPointerUp = useCallback((e: PointerEvent<SVGCircleElement>) => {
+    dragRef.current = null
+    e.currentTarget.releasePointerCapture(e.pointerId)
+  }, [])
 
-   const stroke = active ? '#a782f7' : '#726657'
+  const stroke = active ? '#a782f7' : '#726657'
   const strokeWidth = active ? 2.5 : 1.5
   const arrowId = `arrow-${id}`
 
