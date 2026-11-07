@@ -96,7 +96,13 @@ export default memo(function MarkdownView({
 }: MarkdownViewProps) {
   return (
     <div className={`break-words ${className}`}>
-      <ReactMarkdown remarkPlugins={[remarkGfm]} components={components}>
+      <ReactMarkdown
+        remarkPlugins={[remarkGfm]}
+        components={components}
+        // LLM output is untrusted: a remote image would let it exfiltrate
+        // data through the request URL, so images are never rendered.
+        disallowedElements={['img']}
+      >
         {markdown}
       </ReactMarkdown>
     </div>

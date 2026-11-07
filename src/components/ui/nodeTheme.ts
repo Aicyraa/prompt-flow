@@ -12,13 +12,16 @@ export const STATUS_DOTS: Record<NodeStatus, string> = {
   running: 'bg-amber-400 animate-pulse',
   done: 'bg-emerald-400',
   error: 'bg-rose-500',
+  cancelled: 'bg-charcoal-300',
 }
 
+/** Visible text for non-idle states, so status is never colour-only. */
 export const STATUS_LABELS: Record<NodeStatus, string> = {
-  idle: 'Idle — connect it to a prompt to run.',
-  running: 'Waiting for upstream inputs, then calls the model.',
-  done: 'Response sent downstream — check the output node.',
-  error: 'Something went wrong during execution.',
+  idle: '',
+  running: 'Running',
+  done: 'Done',
+  error: 'Failed',
+  cancelled: 'Stopped',
 }
 
 export const FOCUS_RINGS: Record<NodeType, string> = {

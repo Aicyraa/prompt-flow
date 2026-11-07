@@ -1,14 +1,16 @@
 import type { ReactNode } from 'react'
 import { Handle, NodeResizer, Position } from '@xyflow/react'
-import type { NodeStatus, NodeType } from '../../types/flow'
-import { useFlowStore } from '../../store/flowStore'
-import { ACCENT_COLORS, STATUS_DOTS } from './nodeTheme'
+import type { NodeType } from '../../types/flow'
+import { useGraphStore } from '../../store/graphStore'
+import { selectNodeRun, useRunStore } from '../../store/runStore'
+import { useSettingsStore } from '../../store/settingsStore'
+import { CloseIcon, Icon } from './Icon'
+import { ACCENT_COLORS, STATUS_DOTS, STATUS_LABELS } from './nodeTheme'
 
 interface NodeShellProps {
   id: string
   type: NodeType
   label: string
-  status?: NodeStatus
   selected?: boolean
   hasTarget?: boolean
   hasSource?: boolean
@@ -17,11 +19,12 @@ interface NodeShellProps {
   children: ReactNode
 }
 
+const KEY_ERRORS = new Set(['no_key', 'invalid_key'])
+
 export default function NodeShell({
   id,
   type,
   label,
-  status = 'idle',
   selected = false,
   hasTarget = false,
   hasSource = false,
@@ -29,14 +32,18 @@ export default function NodeShell({
   width,
   children,
 }: NodeShellProps) {
-  const deleteNode = useFlowStore((s) => s.deleteNode)
+  const deleteNode = useGraphStore((s) => s.deleteNode)
+  const openSettings = useSettingsStore((s) => s.openSettings)
+  const { status, error, errorKind } = useRunStore(selectNodeRun(id))
 
   return (
     <div
       className={`relative rounded-xl border-2 bg-charcoal-900/95 shadow-2xl transition-[border-color,box-shadow] duration-150 ${
-        selected
-          ? 'border-indigo-400/60 shadow-indigo-500/10'
-          : 'border-charcoal-700 hover:border-charcoal-500'
+        status === 'error'
+          ? 'border-rose-500/60'
+          : selected
+            ? 'border-indigo-400/60 shadow-indigo-500/10'
+            : 'border-charcoal-700 hover:border-charcoal-500'
       }`}
       style={width != null ? { width } : resizable ? { width: 288 } : undefined}
     >
@@ -58,31 +65,55 @@ export default function NodeShell({
           {label}
         </span>
         <span
-          className={`h-2 w-2 rounded-full ${STATUS_DOTS[status]}`}
+          className="flex items-center gap-1 text-[10px] text-charcoal-300"
           title={status}
-        />
+        >
+          <span
+            aria-hidden="true"
+            className={`h-2 w-2 rounded-full ${STATUS_DOTS[status]}`}
+          />
+          {STATUS_LABELS[status]}
+        </span>
         <button
           type="button"
           onClick={() => deleteNode(id)}
-          className="rounded p-0.5 text-charcoal-500 transition-colors hover:bg-charcoal-800 hover:text-rose-400"
+          className="rounded p-0.5 text-charcoal-400 transition-colors hover:bg-charcoal-800 hover:text-rose-400"
           title="Delete node"
+          aria-label="Delete node"
         >
-          <svg
-            className="h-3.5 w-3.5"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-          >
-            <path d="M6.28 5.22a.75.75 0 0 0-1.06 1.06L8.94 10l-3.72 3.72a.75.75 0 1 0 1.06 1.06L10 11.06l3.72 3.72a.75.75 0 1 0 1.06-1.06L11.06 10l3.72-3.72a.75.75 0 0 0-1.06-1.06L10 8.94 6.28 5.22Z" />
-          </svg>
+          <CloseIcon className="h-3.5 w-3.5" />
         </button>
       </header>
 
-      <div className="p-3">{children}</div>
+      <div className="p-3">
+        {children}
+        {status === 'error' && error && (
+          <div
+            role="alert"
+            className="nodrag mt-3 cursor-text rounded-md border border-rose-500/40 bg-rose-950/40 p-2 text-[11px] leading-relaxed text-rose-200 select-text"
+          >
+            <p className="flex gap-1.5">
+              <Icon name="alert" className="mt-px h-3.5 w-3.5 shrink-0" />
+              <span className="break-words">{error}</span>
+            </p>
+            {errorKind && KEY_ERRORS.has(errorKind) && (
+              <button
+                type="button"
+                onClick={openSettings}
+                className="mt-1.5 rounded border border-rose-400/40 px-2 py-0.5 font-medium text-rose-100 hover:bg-rose-900/40"
+              >
+                Open settings
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       {hasTarget && (
         <Handle
           type="target"
           position={Position.Left}
+          aria-label="Input connection"
           className="!-left-[5px]"
         />
       )}
@@ -90,6 +121,7 @@ export default function NodeShell({
         <Handle
           type="source"
           position={Position.Right}
+          aria-label="Output connection"
           className="!-right-[5px]"
         />
       )}

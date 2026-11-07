@@ -14,8 +14,16 @@ body,
 }
 
 body {
-  font-family: theme('fontFamily.body'), ui-sans-serif, system-ui, -apple-system,
-    'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-family:
+    theme('fontFamily.body'),
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    sans-serif;
   background-color: theme('colors.charcoal.950');
   color: theme('colors.charcoal.50');
 }
@@ -56,7 +64,7 @@ body {
   background: theme('colors.charcoal.900') !important;
   border: 1px solid theme('colors.charcoal.700') !important;
   border-radius: 0.5rem !important;
-  box-shadow: 0 4px 6px theme('colors.charcoal.950')/60 !important;
+  box-shadow: 0 4px 6px theme('colors.charcoal.950') / 60 !important;
 }
 
 .react-flow__controls-button {
@@ -96,7 +104,7 @@ body {
 .react-flow__selection-rect {
   stroke: theme('colors.charcoal.400');
   stroke-dasharray: 4 2;
-  fill: theme('colors.charcoal.800')/40;
+  fill: theme('colors.charcoal.800') / 40;
 }
 
 /* Mini-map (if ever enabled) */
@@ -108,4 +116,25 @@ body {
 }
 .react-flow__minimap-canvas {
   background: theme('colors.charcoal.900');
+}
+
+/* Connection feedback: green on valid targets, red on invalid ones. */
+.react-flow__handle.connectingto.valid {
+  background: #34d399;
+  box-shadow: 0 0 0 4px rgb(52 211 153 / 0.25);
+}
+
+.react-flow__handle.connectingto:not(.valid) {
+  background: #f43f5e;
+  box-shadow: 0 0 0 4px rgb(244 63 94 / 0.25);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
