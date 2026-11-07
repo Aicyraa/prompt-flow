@@ -15,3 +15,8 @@ pnpm-debug.log*
 *.tsbuildinfo
 node_modules/.tmp
 docs/
+# graphify: keep graph.json, GRAPH_REPORT.md and manifest.json; ignore caches and local files
+graphify-out/cache/
+graphify-out/cost.json
+graphify-out/graph.html
+graphify-out/.graphify_*
