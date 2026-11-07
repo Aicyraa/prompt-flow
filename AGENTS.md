@@ -46,6 +46,16 @@ PromptFlow — a node-based visual canvas for chaining LLM prompts (React Flow +
 - Define subagents under `.opencode/agent/` (project-level) with `mode: subagent` and an explicit `model:` field per the tier rules above.
 - Use them for scoped, well-defined tasks (e.g. a review-only agent, a test-writing agent) rather than open-ended "build the feature" delegation — keep me in the loop on anything architectural.
 
+## Codebase Navigation (graphify)
+
+A knowledge graph of this repo lives in `graphify-out/` (`graph.json`, `GRAPH_REPORT.md`). Use it before raw text search.
+
+- **Query first.** For any question about structure, relationships or "where/what calls/what depends on" — run `graphify query "<question>"` (or `graphify path "A" "B"` / `graphify explain "<symbol>"`) **before** using `grep`, `find` or reading files to explore. Skim `graphify-out/GRAPH_REPORT.md` for the god nodes and community map when starting on an unfamiliar area.
+- **Then verify in source.** Treat graph answers as a map: read the cited `source_file`/`source_location` before editing, and trust the code over the graph if they disagree. `INFERRED`/`AMBIGUOUS` edges are hints, not facts.
+- **Fall back to grep/Read** only for exact-string lookups (a literal, a CSS class, a log message), for files the graph doesn't cover, or when the graph is missing or visibly stale.
+- **Update after changes.** After code edits (and before committing), refresh the graph with `graphify update .` (AST only, no LLM, no API key). After changing docs (`AGENTS.md`, `README.md`) or images, run `/graphify . --update` instead so semantic nodes are re-extracted. Commit the refreshed `graphify-out/graph.json`, `GRAPH_REPORT.md` and `manifest.json` with the change, as their own `chore(graph)` commit.
+- Never hand-edit files in `graphify-out/`; rebuild them.
+
 ## Code Conventions
 
 <!-- Fill in as they stabilize -->
