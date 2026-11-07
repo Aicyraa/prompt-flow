@@ -97,3 +97,13 @@ describe('OutputNode streaming and summary', () => {
     ).toBeTruthy()
   })
 })
+
+describe('OutputNode stopping', () => {
+  it('shows a disabled "Stopping…" button while the run winds down', () => {
+    useRunStore.setState({ isRunning: true, stopping: true })
+    setup()
+    const button = screen.getByRole('button', { name: /Stopping/ })
+    expect((button as HTMLButtonElement).disabled).toBe(true)
+    expect(button.getAttribute('aria-busy')).toBe('true')
+  })
+})

@@ -20,6 +20,11 @@ export function useRunAction() {
         toast('Run stopped')
       } else if (summary.succeeded) {
         toast.success('Flow completed')
+      } else if (summary.errorKind === 'invalid_key') {
+        // Every other call would fail the same way: say why, and take the user
+        // to the fix instead of leaving them to find the failed node.
+        toast.error('Your API key was rejected. Check it in Settings.')
+        openSettings()
       } else {
         toast.error(`Flow stopped: ${summary.error ?? 'Unknown error'}`)
       }

@@ -21,6 +21,8 @@ export interface RunSummary {
   error?: string
   /** The user stopped the run. */
   cancelled?: boolean
+  /** Why the failed node failed, so callers can react (e.g. a rejected key). */
+  errorKind?: string
   /** Set when the run was blocked before starting. */
   blocked?: ErrorKind | 'cost'
 }
@@ -38,6 +40,8 @@ interface RunStore {
   /** Node ids in the order they started, for the run log. */
   order: string[]
   isRunning: boolean
+  /** Stop was requested; the in-flight calls are still winding down. */
+  stopping: boolean
   /** Set while waiting for the user to confirm an expensive run. */
   pendingConfirm: { estimate: CostEstimate; options: RunOptions } | null
   apply: (update: NodeStatusUpdate) => void
@@ -55,6 +59,7 @@ export const useRunStore = create<RunStore>()((set, get) => ({
   nodes: {},
   order: [],
   isRunning: false,
+  stopping: false,
   pendingConfirm: null,
 
   apply: (update) =>
@@ -83,7 +88,11 @@ export const useRunStore = create<RunStore>()((set, get) => ({
 
   reset: () => set({ nodes: {}, order: [] }),
 
-  stop: () => controller?.abort(),
+  stop: () => {
+    if (!controller || controller.signal.aborted) return
+    set({ stopping: true })
+    controller.abort()
+  },
 
   dismissConfirm: () => set({ pendingConfirm: null }),
 
@@ -182,10 +191,13 @@ export const useRunStore = create<RunStore>()((set, get) => ({
         failedNodeId,
         cancelled,
         error: failedNodeId ? get().nodes[failedNodeId]?.error : undefined,
+        errorKind: failedNodeId
+          ? get().nodes[failedNodeId]?.errorKind
+          : undefined,
       }
     } finally {
       controller = null
-      set({ isRunning: false })
+      set({ isRunning: false, stopping: false })
     }
   },
 }))

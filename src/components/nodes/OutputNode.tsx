@@ -33,6 +33,7 @@ export default function OutputNode({
   const output = own || live
   const isRunning = useRunStore((s) => s.isRunning)
   const stopRun = useRunStore((s) => s.stop)
+  const stopping = useRunStore((s) => s.stopping)
   const runFlow = useRunAction()
 
   return (
@@ -48,14 +49,20 @@ export default function OutputNode({
           <button
             type="button"
             onClick={stopRun}
+            disabled={stopping}
+            aria-busy={stopping}
             title="Stop the run (Esc)"
-            className="nodrag flex items-center gap-1 rounded-md border border-rose-400/50 px-2 py-0.5 text-[11px] font-semibold text-rose-300 hover:bg-rose-950/50"
+            className="nodrag flex items-center gap-1 rounded-md border border-rose-400/50 px-2 py-0.5 text-[11px] font-semibold text-rose-300 hover:bg-rose-950/50 disabled:cursor-wait disabled:opacity-60"
           >
-            <span
-              aria-hidden="true"
-              className="h-2 w-2 rounded-sm bg-current"
-            />
-            Stop
+            {stopping ? (
+              <Icon name="spinner" className="h-3 w-3" />
+            ) : (
+              <span
+                aria-hidden="true"
+                className="h-2 w-2 rounded-sm bg-current"
+              />
+            )}
+            {stopping ? 'Stopping…' : 'Stop'}
           </button>
         ) : (
           <button

@@ -174,6 +174,49 @@ function llmChain() {
   return { input, llm, out }
 }
 
+describe('runStore stopping state', () => {
+  it('is "stopping" from the Stop click until the run has wound down', async () => {
+    let release: () => void = () => {}
+    vi.mocked(generateText).mockImplementationOnce(
+      (_c, _o, ctx) =>
+        new Promise((_, reject) => {
+          release = () => reject(new Error('x'))
+          ctx?.signal?.addEventListener('abort', () => {
+            // keep winding down for a moment, like a slow network teardown
+            setTimeout(release, 20)
+          })
+        }),
+    )
+    llmChain()
+    const pending = useRunStore.getState().run()
+    await new Promise((r) => setTimeout(r, 0))
+    expect(useRunStore.getState().stopping).toBe(false)
+    useRunStore.getState().stop()
+    expect(useRunStore.getState().stopping).toBe(true)
+    useRunStore.getState().stop() // a second click is harmless
+    await pending
+    expect(useRunStore.getState().stopping).toBe(false)
+    expect(useRunStore.getState().isRunning).toBe(false)
+  })
+
+  it('stop with nothing running does nothing', () => {
+    useRunStore.getState().stop()
+    expect(useRunStore.getState().stopping).toBe(false)
+  })
+
+  it('reports why a node failed so callers can react to a rejected key', async () => {
+    vi.mocked(generateText).mockImplementationOnce(async () => {
+      throw Object.assign(new Error('nope'), { status: 401 })
+    })
+    llmChain()
+    const summary = await useRunStore.getState().run()
+    expect(summary).toMatchObject({
+      succeeded: false,
+      errorKind: 'invalid_key',
+    })
+  })
+})
+
 describe('runStore stop', () => {
   it('stop aborts the run in flight and marks the node stopped', async () => {
     vi.mocked(generateText).mockImplementationOnce(
