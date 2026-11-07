@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  demoteHeadings,
   firstHeading,
   normalizeMarkdown,
   outputFile,
@@ -57,5 +58,20 @@ describe('helpers', () => {
   it('finds headings and slugifies', () => {
     expect(firstHeading('x\n# **Bold** `title` #')).toBe('Bold title')
     expect(slugify('  Hello,   World! ')).toBe('hello-world')
+  })
+})
+
+describe('demoteHeadings', () => {
+  it('pushes headings down and stops at h6', () => {
+    expect(demoteHeadings('# A\n\n### B\n\n###### C', 2)).toBe(
+      '### A\n\n##### B\n\n###### C',
+    )
+  })
+
+  it('leaves code blocks and non-headings alone', () => {
+    const md = '#hashtag\n\n```sh\n# a comment\n```\n\n# Real'
+    expect(demoteHeadings(md, 1)).toBe(
+      '#hashtag\n\n```sh\n# a comment\n```\n\n## Real',
+    )
   })
 })

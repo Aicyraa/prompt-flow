@@ -104,3 +104,19 @@ export function outputFile(raw: string, fallbackName = 'output'): OutputFile {
     type: 'text/markdown',
   }
 }
+
+/**
+ * Shifts every heading down `by` levels (capped at h6), leaving fenced code
+ * alone, so a model's "# Title" can nest inside a larger document.
+ */
+export function demoteHeadings(markdown: string, by: number): string {
+  return segments(markdown)
+    .map((s) =>
+      s.code
+        ? s.text
+        : s.text.replace(/^(#{1,6})(?=[ \t])/gm, (hashes) =>
+            '#'.repeat(Math.min(6, hashes.length + by)),
+          ),
+    )
+    .join('\n')
+}

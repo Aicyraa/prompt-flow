@@ -1,11 +1,13 @@
 import { useMemo } from 'react'
 import { totalUsage, useRunStore } from '../../store/runStore'
 import { formatRunSummary } from '../../lib/format'
+import { useRunReport } from './useRunReport'
 
 /** Tokens, cost and time for the finished run, shown under the result. */
 export default function RunSummaryLine() {
   const runs = useRunStore((s) => s.nodes)
   const isRunning = useRunStore((s) => s.isRunning)
+  const { download } = useRunReport()
 
   const text = useMemo(() => {
     const all = Object.values(runs)
@@ -29,11 +31,16 @@ export default function RunSummaryLine() {
 
   if (isRunning || !text) return null
   return (
-    <p
-      className="mt-1.5 shrink-0 px-0.5 text-[11px] text-charcoal-400"
-      title="Totals for the last run"
-    >
-      {text}
-    </p>
+    <div className="nodrag mt-1.5 flex shrink-0 items-start justify-between gap-2 px-0.5 text-[11px] text-charcoal-400">
+      <p title="Totals for the last run">{text}</p>
+      <button
+        type="button"
+        onClick={download}
+        title="Download the whole run as one Markdown report"
+        className="shrink-0 rounded px-1.5 py-0.5 text-charcoal-300 transition-colors hover:bg-charcoal-800 hover:text-charcoal-50"
+      >
+        Report .md
+      </button>
+    </div>
   )
 }
