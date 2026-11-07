@@ -15,6 +15,7 @@ import { generate } from '../lib/providers'
 import { DEFAULT_MODEL } from '../lib/nodes'
 import { extractJson } from '../lib/json'
 import { substituteVariables } from '../lib/variables'
+import { byCanvasPosition, mergeTexts } from '../lib/merge'
 import { findCycleNodeIds, topologicalSort } from './topologicalSort'
 import { withRetry, type RetryOptions } from './retry'
 
@@ -252,6 +253,28 @@ export async function executeFlow(
         onStatus({ nodeId: id, status: 'done', output: inputText })
         return true
       }
+
+      if (node.data.type === 'merge') {
+        // Branches read in canvas order: top to bottom, then left to right.
+        const branches = byCanvasPosition(
+          getUpstreamNodeIds(edges, id)
+            .map((u) => byId.get(u))
+            .filter((n): n is FlowNode => Boolean(n)),
+        )
+        const merged = mergeTexts(
+          branches.map((n) => ({
+            label: n.data.label?.trim() || n.data.type,
+            text: values.get(n.id) ?? '',
+          })),
+          node.data,
+        )
+        if (!merged.trim()) throw new Error('Merge has no text to join')
+        values.set(id, merged)
+        onStatus({ nodeId: id, status: 'done', output: merged })
+        return true
+      }
+
+      if (node.data.type !== 'llm') throw new Error('Unknown node type')
 
       // LLM node
       if (!inputText.trim()) throw new Error('LLM node has no incoming prompt')

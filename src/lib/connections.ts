@@ -6,8 +6,13 @@ export interface NodeRef {
   type: NodeType
 }
 
-export const SOURCE_NODE_TYPES: NodeType[] = ['input', 'prompt', 'llm']
-export const TARGET_NODE_TYPES: NodeType[] = ['prompt', 'llm', 'output']
+export const SOURCE_NODE_TYPES: NodeType[] = ['input', 'prompt', 'llm', 'merge']
+export const TARGET_NODE_TYPES: NodeType[] = [
+  'prompt',
+  'llm',
+  'merge',
+  'output',
+]
 
 export function canConnect(
   source: NodeRef,

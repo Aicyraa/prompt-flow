@@ -9,6 +9,7 @@ export const NODE_LABELS: Record<NodeType, string> = {
   input: 'Input',
   prompt: 'Prompt',
   llm: 'Agent',
+  merge: 'Merge',
   output: 'Output',
 }
 
@@ -30,6 +31,8 @@ export function withFixedWidth(node: FlowNode): FlowNode {
       return node.width == null ? { ...node, width: FIXED_NODE_WIDTH } : node
     case 'llm':
       return node.width == null ? { ...node, width: LLM_NODE_WIDTH } : node
+    case 'merge':
+      return node.width == null ? { ...node, width: FIXED_NODE_WIDTH } : node
     case 'output':
       return node.width == null || node.height == null
         ? {
@@ -60,6 +63,9 @@ export function createNode(type: NodeType, position: XYPosition): FlowNode {
         model: DEFAULT_MODEL,
         temperature: DEFAULT_TEMPERATURE,
       }
+      break
+    case 'merge':
+      data = { type, label }
       break
     case 'output':
       data = { type, label }

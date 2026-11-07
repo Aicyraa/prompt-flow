@@ -303,3 +303,79 @@ describe('executeFlow variables', () => {
     expect(applyTemplate('{{nope}}', [], {})).toBe('{{nope}}')
   })
 })
+
+describe('executeFlow merge node', () => {
+  const at = (n: FlowNode, x: number, y: number): FlowNode => ({
+    ...n,
+    position: { x, y },
+  })
+
+  it('joins its branches in canvas order, with names when asked', async () => {
+    const nodes = [
+      node('in', 'input', { text: 'q' }),
+      // listed bottom-first on purpose: order must follow the canvas, not the list
+      at(
+        node('b', 'prompt', { label: 'Sceptic', template: 'no: {{input}}' }),
+        300,
+        200,
+      ),
+      at(
+        node('a', 'prompt', { label: 'Optimist', template: 'yes: {{input}}' }),
+        300,
+        0,
+      ),
+      node('m', 'merge', { labelled: true, separator: 'rule' }),
+    ]
+    const { statuses, onStatus } = collect()
+    const result = await executeFlow({
+      nodes,
+      edges: [edge('in', 'b'), edge('in', 'a'), edge('b', 'm'), edge('a', 'm')],
+      client: null,
+      generate: async () => 'unused',
+      onStatus,
+    })
+    expect(result.succeeded).toBe(true)
+    expect(statuses).toContainEqual({
+      nodeId: 'm',
+      status: 'done',
+      output: '**Optimist**\n\nyes: q\n\n---\n\n**Sceptic**\n\nno: q',
+    })
+  })
+
+  it('passes the merged text to the next model call', async () => {
+    const nodes = [
+      node('x', 'input', { text: 'one' }),
+      node('y', 'input', { text: 'two' }),
+      node('m', 'merge', {}),
+      node('l', 'llm', { model: 'm' }),
+    ]
+    const generate = vi.fn(async (o: GenerateOptions) => o.prompt)
+    const { onStatus } = collect()
+    await executeFlow({
+      nodes,
+      edges: [edge('x', 'm'), edge('y', 'm'), edge('m', 'l')],
+      client: null,
+      generate,
+      onStatus,
+    })
+    expect(generate).toHaveBeenCalledWith(
+      expect.objectContaining({ prompt: 'one\n\ntwo' }),
+      expect.anything(),
+    )
+  })
+
+  it('fails clearly when there is nothing to join', async () => {
+    const { statuses, onStatus } = collect()
+    const result = await executeFlow({
+      nodes: [node('m', 'merge', {})],
+      edges: [],
+      client: null,
+      generate: async () => 'x',
+      onStatus,
+    })
+    expect(result.succeeded).toBe(false)
+    expect(statuses.find((s) => s.status === 'error')).toMatchObject({
+      error: 'Merge has no text to join',
+    })
+  })
+})

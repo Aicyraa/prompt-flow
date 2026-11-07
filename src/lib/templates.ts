@@ -49,7 +49,93 @@ function chain(
   return { nodes, edges, ...(variables ? { variables } : {}) }
 }
 
+/** Builds nodes at explicit grid cells, then wires them by index. */
+function graph(
+  cells: {
+    type: NodeType
+    col: number
+    row: number
+    data?: Partial<NodeData>
+  }[],
+  links: [number, number][],
+): { nodes: FlowNode[]; edges: FlowEdge[] } {
+  const nodes = cells.map((c) => {
+    const node = createNode(c.type, { x: c.col * COLUMN, y: c.row * 240 })
+    node.data = { ...node.data, ...c.data } as NodeData
+    return node
+  })
+  const edges: FlowEdge[] = links.map(([from, to]) => ({
+    id: nanoid(),
+    source: nodes[from].id,
+    target: nodes[to].id,
+    type: 'curved',
+    data: { bend: 0 },
+  }))
+  return { nodes, edges }
+}
+
 export const TEMPLATES: FlowTemplate[] = [
+  {
+    id: 'compare-takes',
+    title: 'Compare two takes',
+    description:
+      'Two agents argue opposite sides, a Merge joins them, a third judges',
+    build: () =>
+      graph(
+        [
+          {
+            type: 'input',
+            col: 0,
+            row: 0,
+            data: { text: 'Should a small team adopt a four-day work week?' },
+          },
+          {
+            type: 'prompt',
+            col: 1,
+            row: -1,
+            data: { template: 'Argue FOR this, in three points:\n\n{{input}}' },
+          },
+          {
+            type: 'prompt',
+            col: 1,
+            row: 1,
+            data: {
+              template: 'Argue AGAINST this, in three points:\n\n{{input}}',
+            },
+          },
+          { type: 'llm', col: 2, row: -1, data: { label: 'Optimist' } },
+          { type: 'llm', col: 2, row: 1, data: { label: 'Sceptic' } },
+          {
+            type: 'merge',
+            col: 3,
+            row: 0,
+            data: { labelled: true, separator: 'rule' },
+          },
+          {
+            type: 'prompt',
+            col: 4,
+            row: 0,
+            data: {
+              template:
+                'Read both arguments and give a balanced verdict in one paragraph:\n\n{{input}}',
+            },
+          },
+          { type: 'llm', col: 5, row: 0, data: { label: 'Judge' } },
+          { type: 'output', col: 6, row: 0 },
+        ],
+        [
+          [0, 1],
+          [0, 2],
+          [1, 3],
+          [2, 4],
+          [3, 5],
+          [4, 5],
+          [5, 6],
+          [6, 7],
+          [7, 8],
+        ],
+      ),
+  },
   {
     id: 'translate-variables',
     title: 'Translate with variables',

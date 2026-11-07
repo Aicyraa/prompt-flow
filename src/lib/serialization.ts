@@ -21,7 +21,7 @@ export interface ParsedFlow {
 
 const CURVED_ONLY = 'curved' as const
 
-const nodeTypeSchema = z.enum(['input', 'prompt', 'llm', 'output'])
+const nodeTypeSchema = z.enum(['input', 'prompt', 'llm', 'merge', 'output'])
 
 const nodeSchema = z
   .object({

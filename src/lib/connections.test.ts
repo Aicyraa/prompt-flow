@@ -66,3 +66,24 @@ describe('wouldCreateCycle', () => {
     expect(wouldCreateCycle('d', 'b', edges)).toBe(false)
   })
 })
+
+describe('merge node connections', () => {
+  const merge = { id: 'm', type: 'merge' as const }
+
+  it('accepts several branches in and sends the result on', () => {
+    expect(canConnect({ id: 'a', type: 'llm' }, merge, [])).toBe(true)
+    expect(canConnect({ id: 'b', type: 'input' }, merge, [])).toBe(true)
+    expect(canConnect(merge, { id: 'p', type: 'prompt' }, [])).toBe(true)
+    expect(canConnect(merge, { id: 'o', type: 'output' }, [])).toBe(true)
+  })
+
+  it('still rejects loops through a merge', () => {
+    const edges = [
+      { id: '1', source: 'a', target: 'm' },
+      { id: '2', source: 'm', target: 'b' },
+    ]
+    expect(
+      canConnect({ id: 'b', type: 'llm' }, { id: 'a', type: 'llm' }, edges),
+    ).toBe(false)
+  })
+})

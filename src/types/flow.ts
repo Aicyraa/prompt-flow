@@ -1,6 +1,6 @@
 import type { Node, Edge } from '@xyflow/react'
 
-export type NodeType = 'input' | 'prompt' | 'llm' | 'output'
+export type NodeType = 'input' | 'prompt' | 'llm' | 'merge' | 'output'
 
 export type NodeStatus = 'idle' | 'running' | 'done' | 'error' | 'cancelled'
 
@@ -23,10 +23,21 @@ export type LlmData = BaseData & {
   fallbackModels?: string[]
   outputMode?: OutputMode
 }
+export type MergeSeparator = 'blank' | 'line' | 'rule' | 'custom'
+
+/** Joins the text of several branches into one, without calling a model. */
+export type MergeData = BaseData & {
+  type: 'merge'
+  separator?: MergeSeparator
+  /** Used when `separator` is 'custom'. */
+  customSeparator?: string
+  /** Put each branch's node name above its text. */
+  labelled?: boolean
+}
 export type OutputData = BaseData & { type: 'output' }
 
 /** Discriminated on `type`; narrow with `data.type === '…'`. */
-export type NodeData = InputData | PromptData | LlmData | OutputData
+export type NodeData = InputData | PromptData | LlmData | MergeData | OutputData
 
 /** Transient execution state for one node. Never persisted or exported. */
 export interface Usage {
