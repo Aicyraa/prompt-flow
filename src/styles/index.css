@@ -48,6 +48,10 @@ body {
 }
 
 .react-flow__handle {
+  transition:
+    transform 150ms ease,
+    background-color 150ms ease,
+    box-shadow 150ms ease;
   width: 10px;
   height: 10px;
   border-radius: 9999px;
@@ -57,6 +61,20 @@ body {
 
 .react-flow__handle:hover {
   background: #818cf8;
+  transform: scale(1.35);
+}
+
+/* Smooth glide when the layout changes the viewport (zoom buttons, fit view
+   are animated by React Flow itself); edges and nodes ease their colours. */
+.react-flow__controls-button {
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.react-flow__connection-path {
+  stroke-dasharray: 6 4;
+  animation: dash-flow 0.9s linear infinite;
 }
 
 /* Charcoal themed zoom / control buttons (no white squares) */
