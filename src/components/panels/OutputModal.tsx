@@ -1,18 +1,28 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { copyText, downloadFile } from '../../lib/browserFile'
+import { outputFile } from '../../lib/markdown'
 import Modal from '../ui/Modal'
 import MarkdownView from '../ui/LazyMarkdown'
 
 interface OutputModalProps {
   markdown: string
+  filename?: string
   onClose: () => void
 }
 
 const btn =
   'rounded-md border border-charcoal-700 px-2.5 py-1.5 text-xs font-medium text-charcoal-200 transition-colors hover:bg-charcoal-800'
 
-export default function OutputModal({ markdown, onClose }: OutputModalProps) {
+export default function OutputModal({
+  markdown,
+  filename = 'output',
+  onClose,
+}: OutputModalProps) {
   const [raw, setRaw] = useState(false)
+  const file = useMemo(
+    () => outputFile(markdown, filename),
+    [markdown, filename],
+  )
   return (
     <Modal
       title="Output"
@@ -23,17 +33,17 @@ export default function OutputModal({ markdown, onClose }: OutputModalProps) {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => void copyText(markdown)}
+            onClick={() => void copyText(file.content)}
             className={btn}
           >
             Copy
           </button>
           <button
             type="button"
-            onClick={() => downloadFile('output.md', markdown, 'text/markdown')}
+            onClick={() => downloadFile(file.filename, file.content, file.type)}
             className={btn}
           >
-            Download .md
+            Download {file.filename}
           </button>
           <button
             type="button"
@@ -49,10 +59,17 @@ export default function OutputModal({ markdown, onClose }: OutputModalProps) {
       <div className="px-5 py-4">
         {raw ? (
           <pre className="font-mono text-[12px] leading-relaxed break-words whitespace-pre-wrap text-charcoal-100">
-            {markdown}
+            {file.content}
           </pre>
         ) : (
-          <MarkdownView markdown={markdown} />
+          <MarkdownView
+            markdown={
+              file.type === 'application/json'
+                ? '```json\n' + file.content + '```'
+                : file.content
+            }
+            size="lg"
+          />
         )}
       </div>
     </Modal>

@@ -8,9 +8,11 @@ const MarkdownView = lazy(() => import('./MarkdownView'))
 export default function LazyMarkdown({
   markdown,
   className = '',
+  size = 'sm',
 }: {
   markdown: string
   className?: string
+  size?: 'sm' | 'lg'
 }) {
   return (
     <Suspense
@@ -22,7 +24,7 @@ export default function LazyMarkdown({
         </div>
       }
     >
-      <MarkdownView markdown={markdown} className={className} />
+      <MarkdownView markdown={markdown} className={className} size={size} />
     </Suspense>
   )
 }
