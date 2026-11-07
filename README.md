@@ -126,3 +126,7 @@ an installed Chromium when there is one (or `E2E_CHROMIUM=/path/to/chrome`); oth
 
 - `graphify-out/` holds a knowledge graph of the codebase for quick navigation. See
   `AGENTS.md` for how it is used and refreshed.
+
+## License
+
+[MIT](LICENSE) © 2026 Jee
