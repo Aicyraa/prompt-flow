@@ -167,6 +167,35 @@ export async function open(page: Page) {
 export async function startFrom(page: Page, template: RegExp | string) {
   await page.getByRole('button', { name: template }).click()
   await expect(page.locator('.react-flow__node').first()).toBeVisible()
+  await viewSettled(page)
+}
+
+/**
+ * Waits until the canvas stops moving (the fit-to-view glide after a flow
+ * loads). On a slow machine that glide outlasts the first measurement, so a
+ * drag aimed at where a node *was* grabs the empty pane and pans instead.
+ */
+export async function viewSettled(page: Page) {
+  const nodes = page.locator('.react-flow__node')
+  const snapshot = async () =>
+    JSON.stringify(
+      await Promise.all(
+        (await nodes.all()).map(async (n) => await n.boundingBox()),
+      ),
+    )
+  let last = ''
+  let steady = 0
+  await expect
+    .poll(
+      async () => {
+        const now = await snapshot()
+        steady = now === last ? steady + 1 : 0
+        last = now
+        return steady
+      },
+      { intervals: [100], timeout: 10_000 },
+    )
+    .toBeGreaterThanOrEqual(4)
 }
 
 export const node = (page: Page, type: string): Locator =>

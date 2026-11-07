@@ -1,5 +1,12 @@
 import { expect, test, type Page } from '@playwright/test'
-import { node, nodeCount, open, prepare, startFrom } from './support'
+import {
+  node,
+  nodeCount,
+  open,
+  prepare,
+  startFrom,
+  viewSettled,
+} from './support'
 
 const top = async (page: Page, type: string) =>
   Math.round((await node(page, type).boundingBox())!.y)
@@ -55,14 +62,17 @@ test.describe('editing the canvas', () => {
     await page.mouse.click(700, 120)
 
     await page.getByRole('button', { name: 'Tidy layout' }).click()
-    await page.waitForTimeout(900) // nodes glide, then the view re-fits
     const centre = async (type: string) => {
       const b = (await node(page, type).boundingBox())!
       return Math.round(b.y + b.height / 2)
     }
-    const a = await centre('input')
-    const b = await centre('llm')
-    expect(Math.abs(a - b)).toBeLessThan(6)
+    // nodes glide, then the view re-fits; wait for it rather than a fixed delay
+    await expect
+      .poll(async () =>
+        Math.abs((await centre('input')) - (await centre('llm'))),
+      )
+      .toBeLessThan(6)
+    await viewSettled(page)
 
     // One undo restores the layout (the view itself is not part of undo, so
     // compare how far apart the nodes are, not where they sit on screen).
