@@ -8,6 +8,7 @@ import { useSettingsStore } from '../../store/settingsStore'
 import { useRunAction } from '../run/useRunAction'
 import { useFlowFile } from '../topbar/useFlowFile'
 import { useViewActions } from '../useViewActions'
+import { showUndoToast } from '../ui/undoToast'
 import type { Command } from './commands'
 
 const NODE_TYPES: NodeType[] = ['input', 'prompt', 'llm', 'output']
@@ -112,7 +113,10 @@ export function useCommands(onAdd: (type: NodeType) => void): Command[] {
         group: 'Flow',
         keywords: 'delete everything new empty',
         enabled: nodes.length > 0,
-        run: clearFlow,
+        run: () => {
+          clearFlow()
+          showUndoToast('Canvas cleared')
+        },
       },
       {
         id: 'tidy',

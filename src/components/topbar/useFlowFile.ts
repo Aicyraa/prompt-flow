@@ -4,6 +4,7 @@ import { useReactFlow } from '@xyflow/react'
 import { downloadFile } from '../../lib/browserFile'
 import { parseFlowStrict, serializeFlow } from '../../lib/serialization'
 import { useGraphStore } from '../../store/graphStore'
+import { showUndoToast } from '../ui/undoToast'
 
 /** Import/export of the flow as a JSON file. */
 export function useFlowFile() {
@@ -29,8 +30,10 @@ export function useFlowFile() {
           toast.error('That file is not a valid PromptFlow export.')
           return
         }
+        const replaced = useGraphStore.getState().nodes.length > 0
         loadFlow(parsed.nodes, parsed.edges, parsed.edgeStyle)
-        toast.success('Flow imported')
+        if (replaced) showUndoToast('Flow imported, replacing your canvas')
+        else toast.success('Flow imported')
         requestAnimationFrame(
           () => void fitView({ padding: 0.2, duration: 300 }),
         )
