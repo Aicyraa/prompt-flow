@@ -30,3 +30,15 @@ describe.each(TEMPLATES)('template $id', (template) => {
     expect(template.build().nodes[0].id).not.toBe(template.build().nodes[0].id)
   })
 })
+
+describe('template variables', () => {
+  it('starts with a value for every variable the template uses', async () => {
+    const { findFlowVariables } = await import('./variables')
+    for (const template of TEMPLATES) {
+      const { nodes, variables = {} } = template.build()
+      for (const name of findFlowVariables(nodes)) {
+        expect(variables[name], `${template.id}: ${name}`).toBeTruthy()
+      }
+    }
+  })
+})

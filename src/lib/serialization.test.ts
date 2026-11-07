@@ -46,6 +46,7 @@ describe('serializeFlow', () => {
       nodes: [],
       edges: [],
       edgeStyle: 'curved',
+      variables: {},
     })
   })
 
@@ -54,6 +55,7 @@ describe('serializeFlow', () => {
       nodes: [],
       edges: [],
       edgeStyle: 'curved',
+      variables: {},
     })
   })
 
@@ -111,5 +113,41 @@ describe('parseFlowStrict', () => {
     expect(parsed?.edges).toEqual([
       { id: 'e1', source: 'a', target: 'b', type: 'curved', data: { bend: 0 } },
     ])
+  })
+})
+
+describe('flow variables in files', () => {
+  const nodes = [createNode('input', { x: 0, y: 0 })]
+
+  it('round-trips variable values through export and import', () => {
+    const json = serializeFlow(nodes, [], 'curved', {
+      language: 'French',
+      tone: 'formal',
+    })
+    expect(parseFlowStrict(json)!.variables).toEqual({
+      language: 'French',
+      tone: 'formal',
+    })
+  })
+
+  it('omits the block when there are no variables, and reads old files as empty', () => {
+    expect(serializeFlow(nodes, [], 'curved')).not.toContain('variables')
+    const old = JSON.stringify({ version: 5, nodes: [], edges: [] })
+    expect(parseFlowStrict(old)!.variables).toEqual({})
+  })
+
+  it('keeps only string values from a hand-edited file', () => {
+    const json = JSON.stringify({
+      version: 6,
+      nodes: [],
+      edges: [],
+      variables: { ok: 'yes', bad: { nested: 1 }, n: 3 },
+    })
+    expect(parseFlowStrict(json)!.variables).toEqual({ ok: 'yes' })
+  })
+
+  it('does not reject a file whose variables block is malformed', () => {
+    const json = JSON.stringify({ nodes: [], edges: [], variables: 'oops' })
+    expect(parseFlowStrict(json)).not.toBeNull()
   })
 })

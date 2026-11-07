@@ -18,8 +18,8 @@ export default function EmptyState() {
   const hasKey = Boolean(resolveApiKey({ byokEnabled, apiKey }))
 
   const start = (build: (typeof TEMPLATES)[number]['build']) => {
-    const { nodes, edges } = build()
-    loadFlow(nodes, edges)
+    const { nodes, edges, variables } = build()
+    loadFlow(nodes, edges, undefined, variables)
     requestAnimationFrame(() => void fitView({ padding: 0.25, duration: 300 }))
   }
 

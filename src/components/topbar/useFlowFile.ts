@@ -12,10 +12,10 @@ export function useFlowFile() {
   const { fitView } = useReactFlow()
 
   const exportFlow = useCallback(() => {
-    const { nodes, edges, edgeStyle } = useGraphStore.getState()
+    const { nodes, edges, edgeStyle, variables } = useGraphStore.getState()
     downloadFile(
       `promptflow-${new Date().toISOString().slice(0, 10)}.json`,
-      serializeFlow(nodes, edges, edgeStyle),
+      serializeFlow(nodes, edges, edgeStyle, variables),
       'application/json',
     )
     toast.success('Flow exported')
@@ -31,7 +31,7 @@ export function useFlowFile() {
           return
         }
         const replaced = useGraphStore.getState().nodes.length > 0
-        loadFlow(parsed.nodes, parsed.edges, parsed.edgeStyle)
+        loadFlow(parsed.nodes, parsed.edges, parsed.edgeStyle, parsed.variables)
         if (replaced) showUndoToast('Flow imported, replacing your canvas')
         else toast.success('Flow imported')
         requestAnimationFrame(

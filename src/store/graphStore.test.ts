@@ -465,3 +465,28 @@ describe('graphStore applyPositions', () => {
     expect(useGraphStore.getState().nodes[1].position).toEqual({ x: 10, y: 10 })
   })
 })
+
+describe('graphStore variables', () => {
+  it('sets values, keeps them across edits, and replaces them on load', () => {
+    useGraphStore.setState({ nodes: [], edges: [], variables: {} })
+    useGraphStore.getState().setVariable('topic', 'cats')
+    useGraphStore.getState().setVariable('tone', 'calm')
+    useGraphStore.getState().addNode('input', { x: 0, y: 0 })
+    expect(useGraphStore.getState().variables).toEqual({
+      topic: 'cats',
+      tone: 'calm',
+    })
+    useGraphStore.getState().loadFlow([], [], 'curved', { topic: 'dogs' })
+    expect(useGraphStore.getState().variables).toEqual({ topic: 'dogs' })
+  })
+
+  it('persists values with the flow, and keeps them out of undo history', () => {
+    useGraphStore.setState({ nodes: [], edges: [], variables: {}, past: [] })
+    useGraphStore.getState().setVariable('a', 'b')
+    expect(useGraphStore.getState().past).toHaveLength(0)
+    const saved = useGraphStore.persist
+      .getOptions()
+      .partialize?.(useGraphStore.getState())
+    expect(saved).toMatchObject({ variables: { a: 'b' } })
+  })
+})

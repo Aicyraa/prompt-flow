@@ -6,7 +6,12 @@ export interface FlowTemplate {
   id: string
   title: string
   description: string
-  build: () => { nodes: FlowNode[]; edges: FlowEdge[] }
+  build: () => {
+    nodes: FlowNode[]
+    edges: FlowEdge[]
+    /** Starting values for the template's `{{name}}` variables. */
+    variables?: Record<string, string>
+  }
 }
 
 const COLUMN = 400
@@ -18,7 +23,14 @@ interface Step {
   row?: number
 }
 
-function chain(steps: Step[]): { nodes: FlowNode[]; edges: FlowEdge[] } {
+function chain(
+  steps: Step[],
+  variables?: Record<string, string>,
+): {
+  nodes: FlowNode[]
+  edges: FlowEdge[]
+  variables?: Record<string, string>
+} {
   const nodes = steps.map((step, i) => {
     const node = createNode(step.type, {
       x: i * COLUMN,
@@ -34,10 +46,34 @@ function chain(steps: Step[]): { nodes: FlowNode[]; edges: FlowEdge[] } {
     type: 'curved',
     data: { bend: 0 },
   }))
-  return { nodes, edges }
+  return { nodes, edges, ...(variables ? { variables } : {}) }
 }
 
 export const TEMPLATES: FlowTemplate[] = [
+  {
+    id: 'translate-variables',
+    title: 'Translate with variables',
+    description: 'Reusable flow: change the language and tone, then run',
+    build: () =>
+      chain(
+        [
+          {
+            type: 'input',
+            data: { text: 'Good morning! Thanks for waiting.' },
+          },
+          {
+            type: 'prompt',
+            data: {
+              template:
+                'Translate into {{language}} in a {{tone}} tone:\n\n{{input}}',
+            },
+          },
+          { type: 'llm' },
+          { type: 'output' },
+        ],
+        { language: 'French', tone: 'friendly' },
+      ),
+  },
   {
     id: 'summarise',
     title: 'Summarise text',

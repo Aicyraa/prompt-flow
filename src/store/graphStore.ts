@@ -21,6 +21,7 @@ import { createNode, withFixedWidth } from '../lib/nodes'
 import { createDebouncedStorage } from '../lib/debouncedStorage'
 import {
   FLOW_VERSION,
+  cleanVariables,
   normalizeEdges,
   stripTransientNode,
 } from '../lib/serialization'
@@ -58,10 +59,14 @@ let resizing = false
 
 type PersistedGraph = Pick<FlowState, 'nodes' | 'edges'> & {
   edgeStyle: EdgeStyle
+  variables: Record<string, string>
 }
 
 interface GraphStore extends FlowState {
   edgeStyle: EdgeStyle
+  /** Values for `{{name}}` variables used in the flow's text. */
+  variables: Record<string, string>
+  setVariable: (name: string, value: string) => void
   onNodesChange: (changes: NodeChange<FlowNode>[]) => void
   onEdgesChange: (changes: EdgeChange<FlowEdge>[]) => void
   /** Adds a node, selects it (alone), and returns it. */
@@ -79,6 +84,7 @@ interface GraphStore extends FlowState {
     nodes: FlowNode[],
     edges: FlowEdge[],
     edgeStyle?: EdgeStyle,
+    variables?: Record<string, string>,
   ) => void
   clearFlow: () => void
   /** Undo/redo stacks of earlier graph states (never persisted). */
@@ -125,6 +131,7 @@ export const useGraphStore = create<GraphStore>()(
         nodes: [],
         edges: [],
         edgeStyle: 'curved',
+        variables: {},
         past: [],
         future: [],
         clipboard: null,
@@ -255,12 +262,19 @@ export const useGraphStore = create<GraphStore>()(
             ),
           })),
 
-        loadFlow: (nodes, edges, edgeStyle = 'curved') =>
+        loadFlow: (nodes, edges, edgeStyle = 'curved', variables = {}) =>
           set((state) => ({
             ...record(state),
             nodes: nodes.map(withFixedWidth),
             edges: normalizeEdges(edges, nodes),
             edgeStyle,
+            variables,
+          })),
+
+        // Values are run inputs, not graph structure, so they are not undoable.
+        setVariable: (name, value) =>
+          set((state) => ({
+            variables: { ...state.variables, [name]: value },
           })),
 
         clearFlow: () =>
@@ -383,20 +397,31 @@ export const useGraphStore = create<GraphStore>()(
         ) as {
           nodes?: FlowNode[]
           edges?: FlowEdge[]
-          state?: { nodes?: FlowNode[]; edges?: FlowEdge[] }
+          variables?: unknown
+          state?: {
+            nodes?: FlowNode[]
+            edges?: FlowEdge[]
+            variables?: unknown
+          }
         }
         const inner = raw.state ?? raw
         const nodes: FlowNode[] = (inner.nodes ?? [])
           .map(withFixedWidth)
           .map(stripTransientNode)
         const edges = normalizeEdges(inner.edges ?? [], nodes)
-        return { nodes, edges, edgeStyle: 'curved' as const }
+        return {
+          nodes,
+          edges,
+          edgeStyle: 'curved' as const,
+          variables: cleanVariables(inner.variables),
+        }
       },
       partialize: (state) => ({
         // Selection and any legacy run results are never persisted.
         nodes: state.nodes.map(stripTransientNode),
         edges: state.edges.map(({ selected: _selected, ...edge }) => edge),
         edgeStyle: state.edgeStyle,
+        variables: state.variables,
       }),
     },
   ),

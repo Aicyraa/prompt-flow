@@ -1,19 +1,22 @@
 import { z } from 'zod'
 import type { EdgeStyle, FlowEdge, FlowNode, NodeData } from '../types/flow'
 
-export const FLOW_VERSION = 5
+export const FLOW_VERSION = 6
 
 export interface SerializedFlow {
   version: number
   nodes: FlowNode[]
   edges: FlowEdge[]
   edgeStyle?: EdgeStyle
+  /** Values for `{{name}}` variables; absent in older files. */
+  variables?: Record<string, string>
 }
 
 export interface ParsedFlow {
   nodes: FlowNode[]
   edges: FlowEdge[]
   edgeStyle: EdgeStyle
+  variables: Record<string, string>
 }
 
 const CURVED_ONLY = 'curved' as const
@@ -40,7 +43,19 @@ const edgeSchema = z
 const flowSchema = z.object({
   nodes: z.array(nodeSchema),
   edges: z.array(edgeSchema),
+  // Lenient: a malformed variables block must not reject the whole file.
+  variables: z.record(z.unknown()).optional().catch(undefined),
 })
+
+/** Keeps only string values, so a hand-edited file can't smuggle in objects. */
+export function cleanVariables(raw: unknown): Record<string, string> {
+  if (!raw || typeof raw !== 'object') return {}
+  const clean: Record<string, string> = {}
+  for (const [key, value] of Object.entries(raw)) {
+    if (typeof value === 'string') clean[key] = value
+  }
+  return clean
+}
 
 /** Run-time keys older versions stored on node data. */
 const LEGACY_RUN_KEYS = ['status', 'output', 'error'] as const
@@ -79,12 +94,14 @@ export function serializeFlow(
   nodes: FlowNode[],
   edges: FlowEdge[],
   edgeStyle: EdgeStyle,
+  variables: Record<string, string> = {},
 ): string {
   const flow: SerializedFlow = {
     version: FLOW_VERSION,
     nodes: nodes.map(stripTransientNode),
     edges,
     edgeStyle,
+    ...(Object.keys(variables).length ? { variables } : {}),
   }
   return JSON.stringify(flow)
 }
@@ -107,12 +124,22 @@ export function parseFlowStrict(json: string): ParsedFlow | null {
     nodes,
   )
   // Bezier is the only line style now; legacy styles coerce to it.
-  return { nodes, edges, edgeStyle: CURVED_ONLY }
+  return {
+    nodes,
+    edges,
+    edgeStyle: CURVED_ONLY,
+    variables: cleanVariables(result.data.variables),
+  }
 }
 
 /** Lenient variant: an invalid file yields an empty flow. */
 export function parseFlow(json: string): ParsedFlow {
   return (
-    parseFlowStrict(json) ?? { nodes: [], edges: [], edgeStyle: CURVED_ONLY }
+    parseFlowStrict(json) ?? {
+      nodes: [],
+      edges: [],
+      edgeStyle: CURVED_ONLY,
+      variables: {},
+    }
   )
 }
