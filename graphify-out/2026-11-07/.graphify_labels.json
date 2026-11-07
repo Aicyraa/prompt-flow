@@ -1,7 +1,6 @@
 {
   "2": "OpenRouter Client & Providers",
   "4": "History & Run Tests",
-  "5": "Flow Execution Engine",
   "7": "Markdown Output Rendering",
   "8": "TS App Config",
   "10": "TS Node Config",
@@ -16,7 +15,6 @@
   "22": "Prettier Config",
   "23": "Brand Assets",
   "24": "README & Setup",
-  "25": "Vite Build Config",
   "26": "Vite Env Types",
   "27": "tsconfig Root",
   "28": "Test Setup",
