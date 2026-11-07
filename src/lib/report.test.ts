@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { createNode } from './nodes'
-import { buildRunReport, hasReport, reportFilename } from './report'
+import {
+  buildHistoryReport,
+  buildRunReport,
+  hasReport,
+  reportFilename,
+} from './report'
+import type { HistoryEntry } from '../store/historyStore'
 import type { FlowNode, NodeData, NodeRun } from '../types/flow'
 
 const at = { x: 0, y: 0 }
@@ -141,5 +147,75 @@ describe('hasReport / reportFilename', () => {
 
   it('names the file by date and time', () => {
     expect(reportFilename(now)).toBe('promptflow-report-2026-11-07-1405.md')
+  })
+})
+
+describe('buildHistoryReport', () => {
+  const entry: HistoryEntry = {
+    id: 'h1',
+    startedAt: Date.parse('2026-03-01T10:00:00Z'),
+    durationMs: 4200,
+    outcome: 'completed',
+    nodes: [
+      {
+        id: 'a',
+        label: 'Agent',
+        type: 'llm',
+        status: 'done',
+        model: 'a/model',
+        usage: { promptTokens: 100, completionTokens: 50, cost: 0.002 },
+        ms: 1200,
+        output: '# Answer\n\nForty-two.',
+      },
+      {
+        id: 'o',
+        label: 'Output',
+        type: 'output',
+        status: 'done',
+        output: '# Answer\n\nForty-two.',
+      },
+    ],
+  }
+
+  it('reads like a live report, dated from when the run started', () => {
+    const report = buildHistoryReport(entry)
+    expect(report).toContain('**Date:** 2026-03-01 10:00 UTC')
+    expect(report).toContain('**Status:** Completed · 2 steps · 150 tokens')
+    expect(report).toContain('4.2s')
+    expect(report).toContain('## Result')
+    expect(report).toContain('### 1. Agent')
+    expect(report).toContain('*Agent · a/model · 150 tokens · $0.0020 · 1.2s*')
+    expect(report.match(/^# /gm)).toHaveLength(1)
+    expect(report.endsWith('\n')).toBe(true)
+  })
+
+  it('says when outputs were shortened and when the run was partial', () => {
+    const report = buildHistoryReport({
+      ...entry,
+      from: 'Agent',
+      nodes: entry.nodes.map((n) => ({ ...n, truncated: true })),
+    })
+    expect(report).toContain('some outputs were shortened')
+    expect(report).toContain('**Partial run:** started from “Agent”')
+  })
+
+  it('reports failed and stopped runs by their recorded outcome', () => {
+    expect(
+      buildHistoryReport({
+        ...entry,
+        outcome: 'failed',
+        nodes: [
+          {
+            ...entry.nodes[0],
+            status: 'error',
+            error: 'Rate limited',
+            output: undefined,
+          },
+        ],
+      }),
+    ).toMatch(/\*\*Status:\*\* Failed[\s\S]*> \*\*Failed:\*\* Rate limited/)
+    expect(buildHistoryReport({ ...entry, outcome: 'stopped' })).toContain(
+      '**Status:** Stopped',
+    )
   })
 })
