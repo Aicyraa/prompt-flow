@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import type { EdgeChange, NodeChange } from '@xyflow/react'
 import { useGraphStore } from './graphStore'
-import type { FlowEdge } from '../types/flow'
+import type { FlowEdge, FlowNode } from '../types/flow'
 
 const resetStore = () =>
   useGraphStore.setState({
@@ -256,5 +256,185 @@ describe('graphStore addNode selection', () => {
     const { nodes, edges } = useGraphStore.getState()
     expect(nodes.map((n) => Boolean(n.selected))).toEqual([true, false])
     expect(edges[0].selected).toBe(false)
+  })
+})
+
+describe('graphStore undo / redo', () => {
+  beforeEach(() => {
+    useGraphStore.setState({
+      nodes: [],
+      edges: [],
+      past: [],
+      future: [],
+      clipboard: null,
+    })
+  })
+  const s = () => useGraphStore.getState()
+
+  it('undoes and redoes adding a node', () => {
+    s().addNode('input', { x: 0, y: 0 })
+    expect(s().nodes).toHaveLength(1)
+    s().undo()
+    expect(s().nodes).toHaveLength(0)
+    s().redo()
+    expect(s().nodes).toHaveLength(1)
+  })
+
+  it('undoes a delete, including the removed edges', () => {
+    const a = s().addNode('input', { x: 0, y: 0 })
+    const b = s().addNode('llm', { x: 300, y: 0 })
+    s().connectNodes({
+      source: a.id,
+      target: b.id,
+      sourceHandle: null,
+      targetHandle: null,
+    })
+    s().deleteNode(b.id)
+    expect(s().edges).toHaveLength(0)
+    s().undo()
+    expect(s().nodes).toHaveLength(2)
+    expect(s().edges).toHaveLength(1)
+  })
+
+  it('a new action clears the redo stack', () => {
+    s().addNode('input', { x: 0, y: 0 })
+    s().undo()
+    expect(s().future).toHaveLength(1)
+    s().addNode('prompt', { x: 0, y: 0 })
+    expect(s().future).toHaveLength(0)
+  })
+
+  it('treats continuous typing in one node as a single step', () => {
+    const n = s().addNode('input', { x: 0, y: 0 })
+    const before = s().past.length
+    for (const text of ['h', 'he', 'hel', 'hell', 'hello']) {
+      s().updateNodeData(n.id, { text })
+    }
+    expect(s().past.length).toBe(before + 1)
+    s().undo()
+    expect((s().nodes[0].data as { text?: string }).text).toBe('')
+  })
+
+  it('records a whole drag as one step, not one per move', () => {
+    const n = s().addNode('input', { x: 0, y: 0 })
+    const before = s().past.length
+    const move = (x: number, dragging: boolean) =>
+      ({
+        id: n.id,
+        type: 'position',
+        position: { x, y: 0 },
+        dragging,
+      }) as NodeChange<FlowNode>
+    s().onNodesChange([move(5, true)])
+    s().onNodesChange([move(10, true)])
+    s().onNodesChange([move(20, true)])
+    s().onNodesChange([move(20, false)])
+    expect(s().past.length).toBe(before + 1)
+    s().undo()
+    expect(s().nodes[0].position.x).toBe(0)
+  })
+
+  it('caps the undo history', () => {
+    for (let i = 0; i < 60; i++) s().addNode('input', { x: i, y: 0 })
+    expect(s().past.length).toBe(50)
+  })
+
+  it('does nothing when there is nothing to undo or redo', () => {
+    s().undo()
+    s().redo()
+    expect(s().nodes).toHaveLength(0)
+  })
+
+  it('does not persist the history', () => {
+    s().addNode('input', { x: 0, y: 0 })
+    const persisted = useGraphStore.persist.getOptions().partialize?.(s())
+    expect(persisted).not.toHaveProperty('past')
+    expect(persisted).not.toHaveProperty('future')
+    expect(persisted).not.toHaveProperty('clipboard')
+  })
+})
+
+describe('graphStore copy / paste / duplicate', () => {
+  beforeEach(() => {
+    useGraphStore.setState({
+      nodes: [],
+      edges: [],
+      past: [],
+      future: [],
+      clipboard: null,
+    })
+  })
+  const s = () => useGraphStore.getState()
+
+  function chain() {
+    const a = s().addNode('input', { x: 0, y: 0 })
+    const b = s().addNode('llm', { x: 300, y: 0 })
+    s().connectNodes({
+      source: a.id,
+      target: b.id,
+      sourceHandle: null,
+      targetHandle: null,
+    })
+    return { a, b }
+  }
+  const selectOnly = (...ids: string[]) =>
+    useGraphStore.setState((st) => ({
+      nodes: st.nodes.map((n) => ({ ...n, selected: ids.includes(n.id) })),
+    }))
+
+  it('pastes copies with new ids, offset, selected, and the edges between them', () => {
+    const { a, b } = chain()
+    selectOnly(a.id, b.id)
+    expect(s().copySelection()).toBe(true)
+    expect(s().pasteClipboard()).toBe(2)
+    expect(s().nodes).toHaveLength(4)
+    expect(s().edges).toHaveLength(2)
+    const copies = s().nodes.filter((n) => n.selected)
+    expect(copies).toHaveLength(2)
+    expect(copies.map((n) => n.id)).not.toContain(a.id)
+    expect(copies[0].position.x).toBeGreaterThan(a.position.x)
+    const copyIds = new Set(copies.map((n) => n.id))
+    const newEdge = s().edges.find((e) => copyIds.has(e.source))!
+    expect(copyIds.has(newEdge.target)).toBe(true)
+  })
+
+  it('leaves out edges that reach unselected nodes', () => {
+    const { a } = chain()
+    selectOnly(a.id)
+    s().duplicateSelection()
+    expect(s().nodes).toHaveLength(3)
+    expect(s().edges).toHaveLength(1)
+  })
+
+  it('cascades repeated pastes instead of stacking them', () => {
+    const { a } = chain()
+    selectOnly(a.id)
+    s().copySelection()
+    s().pasteClipboard()
+    s().pasteClipboard()
+    const xs = s()
+      .nodes.filter((n) => n.data.type === 'input')
+      .map((n) => n.position.x)
+    expect(new Set(xs).size).toBe(3)
+  })
+
+  it('duplicate keeps what was copied on the clipboard', () => {
+    const { a, b } = chain()
+    selectOnly(b.id)
+    s().copySelection()
+    selectOnly(a.id)
+    s().duplicateSelection()
+    expect(s().clipboard?.nodes.map((n) => n.id)).toEqual([b.id])
+  })
+
+  it('paste is one undo step and copy does nothing without a selection', () => {
+    const { a } = chain()
+    selectOnly()
+    expect(s().copySelection()).toBe(false)
+    expect(s().pasteClipboard()).toBe(0)
+    selectOnly(a.id)
+    s().duplicateSelection()
+    s().undo()
+    expect(s().nodes).toHaveLength(2)
   })
 })
