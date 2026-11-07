@@ -7,7 +7,7 @@ import { useSettingsStore } from '../../store/settingsStore'
 import { useRunAction } from '../run/useRunAction'
 import { CloseIcon, Icon } from './Icon'
 import NodeIcon from './NodeIcon'
-import { STATUS_DOTS, STATUS_LABELS } from './nodeTheme'
+import NodeStatus from './NodeStatus'
 
 interface NodeShellProps {
   id: string
@@ -46,17 +46,15 @@ export default function NodeShell({
   return (
     // The wrapper plays the one-off entrance; the shell keeps its own
     // run-state animation without the two fighting over `animation`.
+    // Fade only: React Flow measures the connection handles once, on mount,
+    // and a scale here would bake a wrong position into every edge.
     <div
-      className={`animate-pop-in ${resizable ? 'h-full w-full' : ''}`}
+      className={`animate-fade-in ${resizable ? 'h-full w-full' : ''}`}
       style={!resizable && width != null ? { width } : undefined}
     >
       <div
         className={`relative flex flex-col w-full rounded-xl border-2 bg-charcoal-900/95 shadow-2xl transition-[border-color,box-shadow] duration-150 ${
-          status === 'running'
-            ? 'animate-running-glow'
-            : status === 'done'
-              ? 'animate-done-flash'
-              : ''
+          status === 'running' ? 'animate-running-glow' : ''
         } ${resizable ? 'h-full w-full min-w-0' : ''} ${
           status === 'error'
             ? 'border-rose-500/60'
@@ -82,16 +80,7 @@ export default function NodeShell({
           <span className="flex-1 truncate text-xs font-semibold tracking-wide text-charcoal-100 uppercase">
             {label}
           </span>
-          <span
-            className="flex items-center gap-1 text-[10px] text-charcoal-300 transition-opacity"
-            title={status}
-          >
-            <span
-              aria-hidden="true"
-              className={`h-2 w-2 rounded-full transition-colors duration-300 ${STATUS_DOTS[status]}`}
-            />
-            {STATUS_LABELS[status]}
-          </span>
+          <NodeStatus status={status} />
           {actions}
           <button
             type="button"

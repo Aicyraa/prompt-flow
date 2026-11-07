@@ -51,16 +51,6 @@ export default {
               '0 25px 50px -12px rgb(0 0 0 / 0.25), 0 0 0 4px rgb(251 191 36 / 0.22)',
           },
         },
-        'done-flash': {
-          '0%': {
-            boxShadow:
-              '0 25px 50px -12px rgb(0 0 0 / 0.25), 0 0 0 0 rgb(52 211 153 / 0.55)',
-          },
-          '100%': {
-            boxShadow:
-              '0 25px 50px -12px rgb(0 0 0 / 0.25), 0 0 0 10px rgb(52 211 153 / 0)',
-          },
-        },
       },
       animation: {
         'pop-in': 'pop-in 220ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards',
@@ -74,7 +64,6 @@ export default {
         'draw-in': 'draw-in 450ms ease-out backwards',
         'dash-flow': 'dash-flow 0.9s linear infinite',
         'running-glow': 'running-glow 1.6s ease-in-out infinite',
-        'done-flash': 'done-flash 900ms ease-out',
       },
       fontFamily: {
         body: [

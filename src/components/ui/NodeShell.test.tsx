@@ -69,7 +69,7 @@ describe('NodeShell', () => {
     const shell = () =>
       screen.getByText('body').parentElement!.parentElement as HTMLElement
     const { rerender } = setup()
-    expect(shell().parentElement!.className).toContain('animate-pop-in')
+    expect(shell().parentElement!.className).toContain('animate-fade-in')
     expect(shell().className).not.toContain('animate-running-glow')
 
     useRunStore.setState({ nodes: { n1: { status: 'running' } } })
@@ -82,7 +82,7 @@ describe('NodeShell', () => {
     )
     expect(shell().className).toContain('animate-running-glow')
     // The entrance lives on the wrapper so a status change never replays it.
-    expect(shell().parentElement!.className).toContain('animate-pop-in')
+    expect(shell().parentElement!.className).toContain('animate-fade-in')
   })
 })
 
