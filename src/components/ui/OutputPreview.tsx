@@ -58,7 +58,9 @@ export default function OutputPreview({
   }, [display])
 
   return (
-    <div className={`nodrag ${fill ? 'flex min-h-0 flex-1 flex-col' : ''}`}>
+    <div
+      className={`animate-fade-up nodrag ${fill ? 'flex min-h-0 flex-1 flex-col' : ''}`}
+    >
       <div
         className={`relative overflow-hidden rounded-md border border-charcoal-700 bg-charcoal-800/70 ${
           fill ? 'min-h-0 flex-1' : ''

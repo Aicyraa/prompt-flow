@@ -11,7 +11,7 @@ import { useShortcuts } from './useShortcuts'
 import { useDraggable } from './useDraggable'
 
 const iconButton =
-  'flex h-8 w-8 items-center justify-center rounded-md text-charcoal-300 transition-colors hover:bg-charcoal-800 hover:text-charcoal-50'
+  'flex h-8 w-8 items-center justify-center rounded-md text-charcoal-300 transition-[color,background-color,transform] active:scale-90 hover:bg-charcoal-800 hover:text-charcoal-50'
 
 function IconButton({
   icon,
@@ -87,7 +87,7 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
             onClick={() => setCollapsed(false)}
           />
         ) : (
-          <>
+          <div className="flex flex-wrap items-center gap-2 animate-fade-in">
             <NodePalette onAdd={onAdd} />
 
             <div className="flex items-center">
@@ -122,7 +122,7 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
                 onClick={() => setCollapsed(true)}
               />
             </div>
-          </>
+          </div>
         )}
       </header>
 

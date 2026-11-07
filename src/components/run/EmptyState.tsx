@@ -27,7 +27,7 @@ export default function EmptyState() {
     <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-4">
       <section
         aria-labelledby="empty-title"
-        className="pointer-events-auto w-full max-w-md rounded-2xl border border-charcoal-700 bg-charcoal-900/95 p-5 shadow-2xl"
+        className="animate-pop-in pointer-events-auto w-full max-w-md rounded-2xl border border-charcoal-700 bg-charcoal-900/95 p-5 shadow-2xl"
       >
         <div className="flex items-center gap-2.5">
           <Logo className="h-8 w-8" />

@@ -39,11 +39,11 @@ export default function Modal({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose()
       }}
-      className="m-auto w-full bg-transparent p-4 text-charcoal-50 backdrop:bg-black/80 backdrop:backdrop-blur-sm"
+      className="m-auto w-full bg-transparent p-4 text-charcoal-50 backdrop:animate-fade-in backdrop:bg-black/80 backdrop:backdrop-blur-sm"
       style={{ maxWidth: 'none' }}
     >
       <div
-        className={`mx-auto flex max-h-[80vh] w-full flex-col overflow-hidden rounded-2xl border border-charcoal-700 bg-charcoal-900 shadow-2xl ${widthClass}`}
+        className={`animate-pop-in mx-auto flex max-h-[80vh] w-full flex-col overflow-hidden rounded-2xl border border-charcoal-700 bg-charcoal-900 shadow-2xl ${widthClass}`}
       >
         <header className="flex items-center justify-between border-b border-charcoal-800 px-5 py-4">
           <div>

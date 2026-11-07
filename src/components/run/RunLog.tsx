@@ -55,7 +55,7 @@ export default function RunLog() {
   if (entries.length === 0 && !isRunning) return null
 
   return (
-    <div className="absolute inset-x-2 top-24 z-10 md:inset-x-auto md:top-auto md:bottom-4 md:left-16 md:w-80">
+    <div className="animate-fade-up absolute inset-x-2 top-24 z-10 md:inset-x-auto md:top-auto md:bottom-4 md:left-16 md:w-80">
       {/* Announces progress to assistive tech without moving focus. */}
       <div role="status" aria-live="polite" className="sr-only">
         {summary}
@@ -98,11 +98,11 @@ export default function RunLog() {
         </button>
 
         {open && (
-          <ol className="max-h-64 divide-y divide-charcoal-800 overflow-y-auto border-t border-charcoal-800">
+          <ol className="animate-fade-in max-h-64 divide-y divide-charcoal-800 overflow-y-auto border-t border-charcoal-800">
             {entries.map((id) => {
               const run = runs[id]
               return (
-                <li key={id} className="px-3 py-2 text-xs">
+                <li key={id} className="animate-fade-up px-3 py-2 text-xs">
                   <div className="flex items-center gap-2">
                     <span
                       aria-hidden="true"

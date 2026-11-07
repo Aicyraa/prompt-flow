@@ -26,7 +26,7 @@ export default function NodePalette({
           onClick={() => onAdd(type)}
           title={`Add ${label} node`}
           aria-label={`Add ${label} node`}
-          className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-charcoal-200 transition-colors hover:bg-charcoal-800 hover:text-charcoal-50"
+          className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-charcoal-200 transition-[color,background-color,transform] active:scale-95 hover:bg-charcoal-800 hover:text-charcoal-50"
         >
           <NodeIcon type={type} />
           {label}

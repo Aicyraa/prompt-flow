@@ -294,7 +294,7 @@ export default function NodeConfigPanel() {
   const focus = FOCUS_RINGS[data.type]
 
   return (
-    <aside className="absolute inset-x-2 bottom-2 z-10 flex max-h-[55vh] flex-col overflow-hidden rounded-xl border border-charcoal-700 bg-charcoal-900/95 shadow-2xl backdrop-blur md:inset-x-auto md:top-4 md:right-4 md:bottom-4 md:max-h-none md:w-72">
+    <aside className="animate-slide-up absolute inset-x-2 bottom-2 z-10 flex max-h-[55vh] flex-col overflow-hidden rounded-xl border border-charcoal-700 bg-charcoal-900/95 shadow-2xl backdrop-blur md:inset-x-auto md:top-4 md:right-4 md:bottom-4 md:max-h-none md:w-72 md:animate-slide-in-right">
       <header className="flex items-center gap-2 border-b border-charcoal-800 p-3">
         <NodeIcon type={data.type} />
         <div className="flex-1">
