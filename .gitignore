@@ -25,3 +25,5 @@ graphify-out/20*/
 # Playwright
 test-results/
 playwright-report/
+graphify-out/.pending_changes
+graphify-out/.rebuild.lock
