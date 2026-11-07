@@ -156,3 +156,8 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Tidy: nodes glide to their new positions instead of jumping. */
+.is-tidying .react-flow__node {
+  transition: transform 450ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}

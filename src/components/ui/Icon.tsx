@@ -30,6 +30,9 @@ export type IconName =
   | 'check'
   | 'history'
   | 'chevron'
+  | 'layout'
+  | 'map'
+  | 'search'
   | 'undo'
   | 'redo'
   | 'trash'
@@ -37,6 +40,26 @@ export type IconName =
 
 const STROKE: Record<Exclude<IconName, 'play' | 'spinner'>, ReactNode> = {
   chevron: <path d="m5 8 5 5 5-5" />,
+  layout: (
+    <>
+      <rect x="2.5" y="4" width="5" height="4" rx="1" />
+      <rect x="12.5" y="2.5" width="5" height="4" rx="1" />
+      <rect x="12.5" y="13.5" width="5" height="4" rx="1" />
+      <path d="M7.5 6h2a2 2 0 0 1 2 2v0M7.5 6h2a2 2 0 0 0 2-2v0M11 8.5v3a2 2 0 0 0 2 2" />
+    </>
+  ),
+  map: (
+    <>
+      <path d="M3 5.5 7.5 4l5 1.5L17 4v10.5L12.5 16l-5-1.5L3 16V5.5Z" />
+      <path d="M7.5 4v10.5M12.5 5.5V16" />
+    </>
+  ),
+  search: (
+    <>
+      <circle cx="9" cy="9" r="5" />
+      <path d="m13 13 3.5 3.5" />
+    </>
+  ),
   undo: <path d="M7 5 3.5 8.5 7 12M3.5 8.5H12a4.5 4.5 0 0 1 0 9H8" />,
   redo: <path d="m13 5 3.5 3.5L13 12M16.5 8.5H8a4.5 4.5 0 0 0 0 9h4" />,
   plus: <path d="M10 4v12M4 10h12" />,

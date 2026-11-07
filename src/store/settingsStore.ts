@@ -64,6 +64,10 @@ interface SettingsStore {
   historyOpen: boolean
   favouriteModels: string[]
   recentModels: string[]
+  /** Show the minimap in the corner of the canvas. */
+  showMinimap: boolean
+  paletteOpen: boolean
+  guideOpen: boolean
   setByokEnabled: (enabled: boolean) => void
   setApiKey: (key: string) => void
   setKeyPersistence: (persistence: KeyPersistence) => void
@@ -76,6 +80,12 @@ interface SettingsStore {
   setSaveHistory: (enabled: boolean) => void
   openHistory: () => void
   closeHistory: () => void
+  toggleMinimap: () => void
+  openPalette: () => void
+  closePalette: () => void
+  togglePalette: () => void
+  openGuide: () => void
+  closeGuide: () => void
   toggleFavourite: (id: string) => void
   pushRecent: (id: string) => void
 }
@@ -99,6 +109,9 @@ export const useSettingsStore = create<SettingsStore>()(
       historyOpen: false,
       favouriteModels: [],
       recentModels: [],
+      showMinimap: true,
+      paletteOpen: false,
+      guideOpen: false,
       setByokEnabled: (byokEnabled) => set({ byokEnabled }),
 
       setApiKey: (key) => {
@@ -143,6 +156,13 @@ export const useSettingsStore = create<SettingsStore>()(
       setCostThreshold: (usd) =>
         set({ costThresholdUsd: Number.isFinite(usd) && usd > 0 ? usd : 0 }),
 
+      toggleMinimap: () => set((s) => ({ showMinimap: !s.showMinimap })),
+      openPalette: () => set({ paletteOpen: true }),
+      closePalette: () => set({ paletteOpen: false }),
+      togglePalette: () => set((s) => ({ paletteOpen: !s.paletteOpen })),
+      openGuide: () => set({ guideOpen: true }),
+      closeGuide: () => set({ guideOpen: false }),
+
       toggleFavourite: (id) =>
         set((s) => ({
           favouriteModels: s.favouriteModels.includes(id)
@@ -171,6 +191,7 @@ export const useSettingsStore = create<SettingsStore>()(
         saveHistory: s.saveHistory,
         favouriteModels: s.favouriteModels,
         recentModels: s.recentModels,
+        showMinimap: s.showMinimap,
       }),
     },
   ),
