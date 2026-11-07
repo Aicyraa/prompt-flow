@@ -27,3 +27,4 @@ test-results/
 playwright-report/
 graphify-out/.pending_changes
 graphify-out/.rebuild.lock
+graphify-out/.graph.html.stale
