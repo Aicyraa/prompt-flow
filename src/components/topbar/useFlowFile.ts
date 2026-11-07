@@ -41,5 +41,17 @@ export function useFlowFile() {
     [loadFlow, fitView],
   )
 
-  return { exportFlow, importFile }
+  /** Opens the file picker, then imports the chosen flow. */
+  const pickFile = useCallback(() => {
+    const input = document.createElement('input')
+    input.type = 'file'
+    input.accept = 'application/json,.json'
+    input.onchange = () => {
+      const file = input.files?.[0]
+      if (file) importFile(file)
+    }
+    input.click()
+  }, [importFile])
+
+  return { exportFlow, importFile, pickFile }
 }
