@@ -1,5 +1,5 @@
 import type { NodeType } from '../../types/flow'
-import { ACCENT_COLORS } from '../ui/nodeTheme'
+import NodeIcon from '../ui/NodeIcon'
 
 const BUTTONS: { type: NodeType; label: string }[] = [
   { type: 'input', label: 'Input' },
@@ -28,7 +28,7 @@ export default function NodePalette({
           aria-label={`Add ${label} node`}
           className="flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-medium text-charcoal-200 transition-colors hover:bg-charcoal-800 hover:text-charcoal-50"
         >
-          <span className={`h-2 w-2 rounded-full ${ACCENT_COLORS[type]}`} />
+          <NodeIcon type={type} />
           {label}
         </button>
       ))}

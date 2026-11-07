@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, render, screen } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ReactFlowProvider } from '@xyflow/react'
 import { useRunStore } from '../../store/runStore'
@@ -32,13 +32,6 @@ beforeEach(() => {
 afterEach(cleanup)
 
 describe('TopBar', () => {
-  it('always shows a labelled Run button and runs on click', async () => {
-    const user = userEvent.setup()
-    setup()
-    await user.click(screen.getByRole('button', { name: 'Run' }))
-    expect(run).toHaveBeenCalledTimes(1)
-  })
-
   it('runs with Ctrl+Enter, even while typing', async () => {
     const user = userEvent.setup()
     setup()
@@ -46,36 +39,11 @@ describe('TopBar', () => {
     expect(run).toHaveBeenCalledTimes(1)
   })
 
-  it('disables Run and marks it busy while a run is in flight', () => {
-    useRunStore.setState({ isRunning: true })
-    setup()
-    const btn = screen.getByRole('button', { name: /Running/ })
-    expect(btn).toHaveProperty('disabled', true)
-    expect(btn.getAttribute('aria-busy')).toBe('true')
-  })
-
   it('adds nodes from the palette', async () => {
     const user = userEvent.setup()
     const onAdd = setup()
     await user.click(screen.getByRole('button', { name: 'Add Agent node' }))
     expect(onAdd).toHaveBeenCalledWith('llm')
-  })
-
-  it('shows key state and opens Settings from the chip', async () => {
-    const user = userEvent.setup()
-    setup()
-    await user.click(screen.getByRole('button', { name: /No API key/ }))
-    expect(useSettingsStore.getState().settingsOpen).toBe(true)
-  })
-
-  it('reflects a verified key', () => {
-    useSettingsStore.setState({
-      byokEnabled: true,
-      apiKey: 'sk-or-v1-x',
-      keyStatus: 'valid',
-    })
-    setup()
-    expect(screen.getAllByText('Key verified').length).toBeGreaterThan(0)
   })
 
   it('opens the guide on a first visit only, and remembers it was seen', async () => {
@@ -88,6 +56,15 @@ describe('TopBar', () => {
     expect(screen.queryByText('How PromptFlow works')).toBeNull()
   })
 
+  it('stops a run with Esc', async () => {
+    const user = userEvent.setup()
+    const stop = vi.fn()
+    useRunStore.setState({ isRunning: true, stop })
+    setup()
+    await user.keyboard('{Escape}')
+    expect(stop).toHaveBeenCalledTimes(1)
+  })
+
   it('opens the guide with "?"', async () => {
     const user = userEvent.setup()
     setup()
@@ -95,26 +72,42 @@ describe('TopBar', () => {
     await user.keyboard('?')
     expect(screen.getByText('How PromptFlow works')).toBeTruthy()
   })
+})
 
-  it('shows a Stop button only while running, and Esc stops the run', async () => {
+describe('TopBar floating behaviour', () => {
+  it('has no product-name heading and collapses/expands', async () => {
     const user = userEvent.setup()
-    const stop = vi.fn()
-    useRunStore.setState({ isRunning: false, stop })
-    const { unmount } = render(
-      <ReactFlowProvider>
-        <TopBar onAdd={() => {}} />
-      </ReactFlowProvider>,
-    )
-    expect(screen.queryByRole('button', { name: /Stop/ })).toBeNull()
-    await user.keyboard('{Escape}')
-    expect(stop).not.toHaveBeenCalled()
-    unmount()
-
-    useRunStore.setState({ isRunning: true, stop })
+    useSettingsStore.setState({ toolbarCollapsed: false, toolbarPos: null })
     setup()
-    await user.click(screen.getByRole('button', { name: /Stop/ }))
-    expect(stop).toHaveBeenCalledTimes(1)
-    await user.keyboard('{Escape}')
-    expect(stop).toHaveBeenCalledTimes(2)
+    expect(screen.queryByText('PromptFlow')).toBeNull()
+    expect(screen.queryByRole('button', { name: /^Run$|API key/ })).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Collapse toolbar' }))
+    expect(screen.queryByRole('button', { name: 'Add Agent node' })).toBeNull()
+    await user.click(screen.getByRole('button', { name: 'Show toolbar' }))
+    expect(screen.getByRole('button', { name: 'Add Agent node' })).toBeTruthy()
+  })
+
+  it('resets the position on grip double-click', async () => {
+    const user = userEvent.setup()
+    useSettingsStore.setState({
+      toolbarCollapsed: false,
+      toolbarPos: { x: 10, y: 10 },
+    })
+    setup()
+    await user.dblClick(screen.getByRole('button', { name: 'Move toolbar' }))
+    expect(useSettingsStore.getState().toolbarPos).toBeNull()
+  })
+
+  it('moves with the grip and keeps the position', () => {
+    useSettingsStore.setState({ toolbarCollapsed: false, toolbarPos: null })
+    setup()
+    const grip = screen.getByRole('button', { name: 'Move toolbar' })
+    fireEvent.pointerDown(grip, { clientX: 100, clientY: 20, button: 0 })
+    fireEvent.pointerMove(grip, { clientX: 140, clientY: 80 })
+    fireEvent.pointerUp(grip)
+    const pos = useSettingsStore.getState().toolbarPos
+    expect(pos).not.toBeNull()
+    expect(pos!.x).toBeGreaterThanOrEqual(4)
+    expect(pos!.y).toBeGreaterThanOrEqual(4)
   })
 })

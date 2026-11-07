@@ -8,7 +8,8 @@ import { useGraphStore } from '../../store/graphStore'
 import { useModelStore } from '../../store/modelStore'
 import { useRunStore } from '../../store/runStore'
 import { useRunAction } from '../run/useRunAction'
-import { ACCENT_COLORS, FOCUS_RINGS } from '../ui/nodeTheme'
+import NodeIcon from '../ui/NodeIcon'
+import { FOCUS_RINGS } from '../ui/nodeTheme'
 import { CloseIcon } from '../ui/Icon'
 import { Field, inputClass } from '../ui/fields'
 import ModelPicker from '../models/ModelPicker'
@@ -290,13 +291,12 @@ export default function NodeConfigPanel() {
   if (!node) return null
 
   const data = node.data
-  const accent = ACCENT_COLORS[data.type]
   const focus = FOCUS_RINGS[data.type]
 
   return (
-    <aside className="absolute inset-x-2 bottom-2 z-10 flex max-h-[55vh] flex-col overflow-hidden rounded-xl border border-charcoal-700 bg-charcoal-900/95 shadow-2xl backdrop-blur md:inset-x-auto md:top-16 md:right-4 md:bottom-4 md:max-h-none md:w-72">
+    <aside className="absolute inset-x-2 bottom-2 z-10 flex max-h-[55vh] flex-col overflow-hidden rounded-xl border border-charcoal-700 bg-charcoal-900/95 shadow-2xl backdrop-blur md:inset-x-auto md:top-4 md:right-4 md:bottom-4 md:max-h-none md:w-72">
       <header className="flex items-center gap-2 border-b border-charcoal-800 p-3">
-        <span className={`h-4 w-1 rounded-full ${accent}`} />
+        <NodeIcon type={data.type} />
         <div className="flex-1">
           <h2 className="text-sm font-semibold text-charcoal-50">
             Node settings

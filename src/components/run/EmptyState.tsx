@@ -1,6 +1,7 @@
 import { useReactFlow } from '@xyflow/react'
 import { resolveApiKey } from '../../lib/openrouter'
 import { TEMPLATES } from '../../lib/templates'
+import Logo from '../ui/Logo'
 import { useGraphStore } from '../../store/graphStore'
 import { useSettingsStore } from '../../store/settingsStore'
 
@@ -23,16 +24,22 @@ export default function EmptyState() {
   }
 
   return (
-    <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-4 pt-16">
+    <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center p-4">
       <section
         aria-labelledby="empty-title"
         className="pointer-events-auto w-full max-w-md rounded-2xl border border-charcoal-700 bg-charcoal-900/95 p-5 shadow-2xl"
       >
-        <h2 id="empty-title" className="text-sm font-semibold text-charcoal-50">
-          Build a prompt chain
-        </h2>
+        <div className="flex items-center gap-2.5">
+          <Logo className="h-8 w-8" />
+          <h2
+            id="empty-title"
+            className="text-sm font-semibold text-charcoal-50"
+          >
+            Build a prompt chain
+          </h2>
+        </div>
         <p className="mt-1 text-xs text-charcoal-300">
-          Start from an example, or add nodes from the bar above.
+          Start from an example, or add nodes from the toolbar.
         </p>
         <ul className="mt-3 space-y-2">
           {TEMPLATES.map((t) => (
@@ -54,7 +61,7 @@ export default function EmptyState() {
         </ul>
         {!hasKey && (
           <p className="mt-3 flex items-center justify-between gap-2 rounded-lg border border-amber-400/30 bg-amber-950/20 px-3 py-2 text-[11px] text-amber-200">
-            Running models needs your OpenRouter API key.
+            Running models needs an API key.
             <button
               type="button"
               onClick={openSettings}

@@ -5,7 +5,8 @@ import { useGraphStore } from '../../store/graphStore'
 import { selectNodeRun, useRunStore } from '../../store/runStore'
 import { useSettingsStore } from '../../store/settingsStore'
 import { CloseIcon, Icon } from './Icon'
-import { ACCENT_COLORS, STATUS_DOTS, STATUS_LABELS } from './nodeTheme'
+import NodeIcon from './NodeIcon'
+import { STATUS_DOTS, STATUS_LABELS } from './nodeTheme'
 
 interface NodeShellProps {
   id: string
@@ -16,6 +17,8 @@ interface NodeShellProps {
   hasSource?: boolean
   resizable?: boolean
   width?: number
+  /** Extra controls rendered in the header, before the delete button. */
+  actions?: ReactNode
   children: ReactNode
 }
 
@@ -30,6 +33,7 @@ export default function NodeShell({
   hasSource = false,
   resizable = false,
   width,
+  actions,
   children,
 }: NodeShellProps) {
   const deleteNode = useGraphStore((s) => s.deleteNode)
@@ -60,7 +64,7 @@ export default function NodeShell({
         />
       )}
       <header className="flex items-center gap-2 border-b border-charcoal-800 py-2 pr-2 pl-3">
-        <span className={`h-4 w-1 rounded-full ${ACCENT_COLORS[type]}`} />
+        <NodeIcon type={type} />
         <span className="flex-1 truncate text-xs font-semibold tracking-wide text-charcoal-100 uppercase">
           {label}
         </span>
@@ -74,6 +78,7 @@ export default function NodeShell({
           />
           {STATUS_LABELS[status]}
         </span>
+        {actions}
         <button
           type="button"
           onClick={() => deleteNode(id)}

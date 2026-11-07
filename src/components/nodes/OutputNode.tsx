@@ -3,6 +3,8 @@ import type { FlowNode, OutputData } from '../../types/flow'
 import NodeShell from '../ui/NodeShell'
 import OutputPreview from '../ui/OutputPreview'
 import { selectNodeRun, useRunStore } from '../../store/runStore'
+import { useRunAction } from '../run/useRunAction'
+import { Icon } from '../ui/Icon'
 
 export default function OutputNode({
   id,
@@ -10,6 +12,9 @@ export default function OutputNode({
   selected,
 }: NodeProps<FlowNode & { data: OutputData }>) {
   const output = useRunStore(selectNodeRun(id)).output?.trim()
+  const isRunning = useRunStore((s) => s.isRunning)
+  const stopRun = useRunStore((s) => s.stop)
+  const runFlow = useRunAction()
 
   return (
     <NodeShell
@@ -19,6 +24,32 @@ export default function OutputNode({
       selected={selected}
       hasTarget
       width={288}
+      actions={
+        isRunning ? (
+          <button
+            type="button"
+            onClick={stopRun}
+            title="Stop the run (Esc)"
+            className="nodrag flex items-center gap-1 rounded-md border border-rose-400/50 px-2 py-0.5 text-[11px] font-semibold text-rose-300 hover:bg-rose-950/50"
+          >
+            <span
+              aria-hidden="true"
+              className="h-2 w-2 rounded-sm bg-current"
+            />
+            Stop
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => void runFlow()}
+            title="Run flow (Ctrl/⌘+Enter)"
+            className="nodrag flex items-center gap-1 rounded-md bg-violet-500 px-2 py-0.5 text-[11px] font-semibold text-white hover:bg-violet-400"
+          >
+            <Icon name="play" className="h-3 w-3" />
+            Run
+          </button>
+        )
+      }
     >
       {output ? (
         <OutputPreview markdown={output} />

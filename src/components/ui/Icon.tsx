@@ -29,8 +29,12 @@ export type IconName =
   | 'alert'
   | 'check'
   | 'history'
+  | 'grip'
+  | 'collapse'
 
 const STROKE: Record<Exclude<IconName, 'play' | 'spinner'>, ReactNode> = {
+  grip: <path d="M7 5h.01M13 5h.01M7 10h.01M13 10h.01M7 15h.01M13 15h.01" />,
+  collapse: <path d="m5 12 5-5 5 5" />,
   download: <path d="M10 3v10M6 9l4 4 4-4M4 16h12" />,
   upload: <path d="M10 13V3M6 7l4-4 4 4M4 16h12" />,
   help: (

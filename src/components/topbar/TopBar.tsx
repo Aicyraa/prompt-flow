@@ -5,10 +5,10 @@ import { useSettingsStore } from '../../store/settingsStore'
 import GuideModal from '../panels/GuideModal'
 import { useRunAction } from '../run/useRunAction'
 import { Icon, type IconName } from '../ui/Icon'
-import KeyStatusChip from './KeyStatusChip'
 import NodePalette from './NodePalette'
 import { useFlowFile } from './useFlowFile'
 import { useShortcuts } from './useShortcuts'
+import { useDraggable } from './useDraggable'
 
 const iconButton =
   'flex h-8 w-8 items-center justify-center rounded-md text-charcoal-300 transition-colors hover:bg-charcoal-800 hover:text-charcoal-50'
@@ -42,6 +42,9 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
   const markGuideSeen = useSettingsStore((s) => s.markGuideSeen)
   const openSettings = useSettingsStore((s) => s.openSettings)
   const openHistory = useSettingsStore((s) => s.openHistory)
+  const collapsed = useSettingsStore((s) => s.toolbarCollapsed)
+  const setCollapsed = useSettingsStore((s) => s.setToolbarCollapsed)
+  const { ref, style, gripProps } = useDraggable()
   const runFlow = useRunAction()
   const { exportFlow, importFile } = useFlowFile()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -61,67 +64,66 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
 
   return (
     <>
-      <header className="absolute inset-x-0 top-0 z-20 flex flex-wrap items-center gap-2 border-b border-charcoal-800 bg-charcoal-900/90 px-3 py-2 backdrop-blur md:flex-nowrap">
-        <span className="mr-auto text-sm font-semibold tracking-tight text-charcoal-50 md:mr-0">
-          PromptFlow
-        </span>
-
-        <div className="order-last flex basis-full justify-center overflow-x-auto md:order-none md:min-w-0 md:flex-1 md:basis-auto">
-          <NodePalette onAdd={onAdd} />
-        </div>
-
-        <KeyStatusChip />
-
+      <header
+        ref={ref}
+        style={style}
+        aria-label="Toolbar"
+        className="fixed z-20 flex max-w-[calc(100vw-1rem)] flex-wrap items-center gap-2 rounded-xl border border-charcoal-700 bg-charcoal-900/95 px-2 py-1.5 shadow-2xl backdrop-blur"
+      >
         <button
           type="button"
-          onClick={() => void runFlow()}
-          disabled={isRunning}
-          aria-busy={isRunning}
-          title="Run flow (Ctrl/⌘+Enter)"
-          className="flex items-center gap-1.5 rounded-md bg-violet-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-60"
+          {...gripProps}
+          title="Drag to move (double-click to reset)"
+          aria-label="Move toolbar"
+          className="flex h-8 w-5 cursor-grab touch-none items-center justify-center rounded text-charcoal-500 hover:text-charcoal-200 active:cursor-grabbing"
         >
-          <Icon name={isRunning ? 'spinner' : 'play'} className="h-3.5 w-3.5" />
-          {isRunning ? 'Running…' : 'Run'}
+          <Icon name="grip" />
         </button>
 
-        {isRunning && (
-          <button
-            type="button"
-            onClick={stopRun}
-            title="Stop the run (Esc)"
-            className="flex items-center gap-1.5 rounded-md border border-rose-400/50 px-3 py-1.5 text-xs font-semibold text-rose-300 transition-colors hover:bg-rose-950/50"
-          >
-            <span
-              aria-hidden="true"
-              className="h-2.5 w-2.5 rounded-sm bg-current"
-            />
-            Stop
-          </button>
-        )}
+        {collapsed ? (
+          <IconButton
+            icon="settings"
+            label="Show toolbar"
+            onClick={() => setCollapsed(false)}
+          />
+        ) : (
+          <>
+            <NodePalette onAdd={onAdd} />
 
-        <div className="flex items-center">
-          <IconButton
-            icon="download"
-            label="Export flow as JSON"
-            onClick={exportFlow}
-          />
-          <IconButton
-            icon="upload"
-            label="Import flow from JSON"
-            onClick={() => fileInputRef.current?.click()}
-          />
-          <IconButton
-            icon="history"
-            label="Run history"
-            onClick={openHistory}
-          />
-          <IconButton icon="settings" label="Settings" onClick={openSettings} />
-          <IconButton
-            icon="help"
-            label="How PromptFlow works (?)"
-            onClick={openGuide}
-          />
-        </div>
+            <div className="flex items-center">
+              <IconButton
+                icon="download"
+                label="Export flow as JSON"
+                onClick={exportFlow}
+              />
+              <IconButton
+                icon="upload"
+                label="Import flow from JSON"
+                onClick={() => fileInputRef.current?.click()}
+              />
+              <IconButton
+                icon="history"
+                label="Run history"
+                onClick={openHistory}
+              />
+              <IconButton
+                icon="settings"
+                label="Settings"
+                onClick={openSettings}
+              />
+              <IconButton
+                icon="help"
+                label="How PromptFlow works (?)"
+                onClick={openGuide}
+              />
+              <IconButton
+                icon="collapse"
+                label="Collapse toolbar"
+                onClick={() => setCollapsed(true)}
+              />
+            </div>
+          </>
+        )}
       </header>
 
       <input
