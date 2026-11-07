@@ -1,7 +1,8 @@
-import { useCallback, useRef, type PointerEvent } from 'react'
+import { useCallback, useRef, useState, type PointerEvent } from 'react'
 import { useReactFlow, type EdgeProps, type EdgeChange } from '@xyflow/react'
 import type { FlowEdge } from '../../types/flow'
 import { useGraphStore } from '../../store/graphStore'
+import { useRunStore } from '../../store/runStore'
 import {
   buildCurvedPath,
   bendForOffset,
@@ -14,9 +15,14 @@ export default function CurvedEdge({
   sourceY,
   targetX,
   targetY,
+  target: targetId,
   data,
   selected,
 }: EdgeProps<FlowEdge>) {
+  // Data is "flowing" along an edge while the node it feeds is running.
+  const flowing = useRunStore((s) => s.nodes[targetId]?.status === 'running')
+  // New edges draw themselves in once, then drop the dash trick.
+  const [drawn, setDrawn] = useState(false)
   const updateEdgeData = useGraphStore((s) => s.updateEdgeData)
   const onEdgesChange = useGraphStore((s) => s.onEdgesChange)
   const selectEdgeOnly = useGraphStore((s) => s.selectEdgeOnly)
@@ -74,7 +80,7 @@ export default function CurvedEdge({
     e.currentTarget.releasePointerCapture(e.pointerId)
   }, [])
 
-  const stroke = active ? '#a782f7' : '#726657'
+  const stroke = active ? '#a782f7' : flowing ? '#fbbf24' : '#726657'
   const strokeWidth = active ? 2.5 : 1.5
   const arrowId = `arrow-${id}`
 
@@ -104,6 +110,18 @@ export default function CurvedEdge({
         strokeLinecap="round"
         markerEnd={`url(#${arrowId})`}
         pointerEvents="none"
+        // pathLength=1 lets the draw-in use one dash unit for the whole line.
+        pathLength={drawn ? undefined : 1}
+        strokeDasharray={drawn ? (flowing ? '6 6' : undefined) : 1}
+        className={
+          drawn
+            ? flowing
+              ? 'animate-dash-flow'
+              : undefined
+            : 'animate-draw-in'
+        }
+        onAnimationEnd={() => setDrawn(true)}
+        style={{ transition: 'stroke 200ms, stroke-width 200ms' }}
       />
 
       {/* Wide invisible hit path so lines are easy to click/select.
