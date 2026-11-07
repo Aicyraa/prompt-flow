@@ -59,4 +59,24 @@ describe('NodeShell', () => {
       document.querySelector('[aria-label="Output connection"]'),
     ).toBeTruthy()
   })
+
+  it('animates in once and pulses only while running', () => {
+    const shell = () =>
+      screen.getByText('body').parentElement!.parentElement as HTMLElement
+    const { rerender } = setup()
+    expect(shell().parentElement!.className).toContain('animate-pop-in')
+    expect(shell().className).not.toContain('animate-running-glow')
+
+    useRunStore.setState({ nodes: { n1: { status: 'running' } } })
+    rerender(
+      <ReactFlowProvider>
+        <NodeShell id="n1" type="llm" label="LLM">
+          <p>body</p>
+        </NodeShell>
+      </ReactFlowProvider>,
+    )
+    expect(shell().className).toContain('animate-running-glow')
+    // The entrance lives on the wrapper so a status change never replays it.
+    expect(shell().parentElement!.className).toContain('animate-pop-in')
+  })
 })
