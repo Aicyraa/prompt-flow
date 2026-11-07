@@ -24,10 +24,10 @@
     "semantic_hash": "b8459f9a2ef394385ecd5edd39367aa0"
   },
   "package.json": {
-    "mtime": 1794033644.1734874,
-    "seen": 1794039020.615689,
-    "ast_hash": "6726e83cc7cb1fb62cc948ce234bfdeb",
-    "semantic_hash": "6726e83cc7cb1fb62cc948ce234bfdeb"
+    "mtime": 1794039200.854397,
+    "seen": 1794039211.759331,
+    "ast_hash": "4b9d0dc62e8e11b0ea569fbae951b25b",
+    "semantic_hash": ""
   },
   "postcss.config.js": {
     "mtime": 1793986399.0396268,
@@ -774,10 +774,10 @@
     "semantic_hash": "f015fd5794d4e753556779a4b810a514"
   },
   "README.md": {
-    "mtime": 1794038778.783684,
-    "seen": 1794039020.6159678,
-    "ast_hash": "f862ad5bf98708e2af31d871926e1f6e",
-    "semantic_hash": "f862ad5bf98708e2af31d871926e1f6e"
+    "mtime": 1794039200.8545325,
+    "seen": 1794039211.7597306,
+    "ast_hash": "254fecb890d56ab198c9b56e048480cd",
+    "semantic_hash": ""
   },
   "index.html": {
     "mtime": 1794037522.2865903,
@@ -1132,5 +1132,11 @@
     "seen": 1794039020.6159735,
     "ast_hash": "37de92dbe8726ba16abf3132c539f989",
     "semantic_hash": "37de92dbe8726ba16abf3132c539f989"
+  },
+  "package-lock.json": {
+    "mtime": 1794033644.292488,
+    "seen": 1794039211.7597444,
+    "ast_hash": "1ef6f2a00785fbea3ed3c3b79c355e2f",
+    "semantic_hash": ""
   }
 }
