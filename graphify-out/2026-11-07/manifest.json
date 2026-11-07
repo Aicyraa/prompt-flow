@@ -222,9 +222,9 @@
     "semantic_hash": "3958a4be186d660133e293f0add94bd8"
   },
   "src/components/topbar/NodePalette.tsx": {
-    "mtime": 1794022179.9637797,
-    "seen": 1794022341.2498846,
-    "ast_hash": "2a6056d6ac19eb99d23fb7eab5707998",
+    "mtime": 1794022413.4418304,
+    "seen": 1794022453.948272,
+    "ast_hash": "174e34d76648afa53fbd29a852ae04f3",
     "semantic_hash": ""
   },
   "src/components/topbar/TopBar.test.tsx": {
