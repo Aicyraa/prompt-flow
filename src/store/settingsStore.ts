@@ -68,6 +68,7 @@ interface SettingsStore {
   showMinimap: boolean
   paletteOpen: boolean
   guideOpen: boolean
+  variablesOpen: boolean
   setByokEnabled: (enabled: boolean) => void
   setApiKey: (key: string) => void
   setKeyPersistence: (persistence: KeyPersistence) => void
@@ -86,6 +87,8 @@ interface SettingsStore {
   togglePalette: () => void
   openGuide: () => void
   closeGuide: () => void
+  openVariables: () => void
+  closeVariables: () => void
   toggleFavourite: (id: string) => void
   pushRecent: (id: string) => void
 }
@@ -112,6 +115,7 @@ export const useSettingsStore = create<SettingsStore>()(
       showMinimap: true,
       paletteOpen: false,
       guideOpen: false,
+      variablesOpen: false,
       setByokEnabled: (byokEnabled) => set({ byokEnabled }),
 
       setApiKey: (key) => {
@@ -162,6 +166,8 @@ export const useSettingsStore = create<SettingsStore>()(
       togglePalette: () => set((s) => ({ paletteOpen: !s.paletteOpen })),
       openGuide: () => set({ guideOpen: true }),
       closeGuide: () => set({ guideOpen: false }),
+      openVariables: () => set({ variablesOpen: true }),
+      closeVariables: () => set({ variablesOpen: false }),
 
       toggleFavourite: (id) =>
         set((s) => ({

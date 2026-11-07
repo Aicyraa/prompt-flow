@@ -106,8 +106,10 @@ export const useRunStore = create<RunStore>()((set, get) => ({
     const provider = settings.byokEnabled ? settings.provider : 'openrouter'
     const { hasCatalog, models, getModel } = useModelStore.getState()
 
+    const variables = useGraphStore.getState().variables
     const issues = preflight({
       nodes,
+      variables,
       hasKey: Boolean(apiKey),
       catalog: hasCatalog ? models : null,
     })
@@ -177,6 +179,7 @@ export const useRunStore = create<RunStore>()((set, get) => ({
         signal: controller.signal,
         from: options.from,
         cached,
+        variables,
       })
       if (useSettingsStore.getState().saveHistory) {
         recordHistory({

@@ -8,6 +8,7 @@ export type ErrorKind =
   | 'network'
   | 'timeout'
   | 'bad_output'
+  | 'missing_variable'
   | 'unknown'
 
 export interface ClassifiedError {

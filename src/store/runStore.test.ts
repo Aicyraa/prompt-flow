@@ -387,3 +387,36 @@ describe('runStore history recording', () => {
     )
   })
 })
+
+describe('runStore variables', () => {
+  it('blocks a run until every variable has a value, marking the nodes that use it', async () => {
+    vi.mocked(generateText).mockClear()
+    const { input, llm } = llmChain()
+    useGraphStore
+      .getState()
+      .updateNodeData(input.id, { text: 'About {{topic}}' })
+    const blocked = await useRunStore.getState().run()
+    expect(blocked).toMatchObject({
+      succeeded: false,
+      blocked: 'missing_variable',
+    })
+    expect(generateText).not.toHaveBeenCalled()
+    expect(useRunStore.getState().nodes[input.id]).toMatchObject({
+      status: 'error',
+      errorKind: 'missing_variable',
+    })
+    expect(useRunStore.getState().nodes[llm.id]).toBeUndefined()
+  })
+
+  it('sends the filled-in value to the model once provided', async () => {
+    vi.mocked(generateText).mockClear()
+    const { input } = llmChain()
+    useGraphStore
+      .getState()
+      .updateNodeData(input.id, { text: 'About {{topic}}' })
+    useGraphStore.getState().setVariable('topic', 'otters')
+    const summary = await useRunStore.getState().run()
+    expect(summary?.succeeded).toBe(true)
+    expect(vi.mocked(generateText).mock.calls[0][1].prompt).toBe('About otters')
+  })
+})

@@ -14,6 +14,7 @@ import {
 import { generate } from '../lib/providers'
 import { DEFAULT_MODEL } from '../lib/nodes'
 import { extractJson } from '../lib/json'
+import { substituteVariables } from '../lib/variables'
 import { findCycleNodeIds, topologicalSort } from './topologicalSort'
 import { withRetry, type RetryOptions } from './retry'
 
@@ -57,6 +58,8 @@ export interface ExecuteFlowParams {
   from?: string
   /** Outputs of earlier runs, used for nodes outside a partial run. */
   cached?: Record<string, string>
+  /** Values for `{{name}}` variables in Input text, templates and system prompts. */
+  variables?: Record<string, string>
 }
 
 export interface FlowExecutionResult {
@@ -75,6 +78,7 @@ export function getUpstreamNodeIds(
 export function applyTemplate(
   template: string,
   upstream: { label: string; value: string }[],
+  variables: Record<string, string> = {},
 ): string {
   const inputs = upstream.map((u) => u.value).filter((v) => v.length > 0)
   const byLabel = new Map<string, string>()
@@ -88,7 +92,8 @@ export function applyTemplate(
   return template.replace(/\{\{\s*([^{}]+?)\s*\}\}/g, (match, name: string) => {
     const key = name.toLowerCase()
     if (key === 'input') return inputs.join('\n\n')
-    return byLabel.get(key) ?? match
+    // An upstream node's label wins over a variable of the same name.
+    return byLabel.get(key) ?? (name in variables ? variables[name] : match)
   })
 }
 
@@ -97,6 +102,7 @@ function resolveNodeInput(
   edges: FlowEdge[],
   values: Map<string, string>,
   nodes: FlowNode[],
+  variables: Record<string, string>,
 ): string {
   const upstreamIds = getUpstreamNodeIds(edges, node.id)
   const upstreamNodes = upstreamIds
@@ -110,6 +116,7 @@ function resolveNodeInput(
         label: n.data.label ?? '',
         value: values.get(n.id) ?? '',
       })),
+      variables,
     )
   }
 
@@ -165,6 +172,7 @@ export async function executeFlow(
   params: ExecuteFlowParams,
 ): Promise<FlowExecutionResult> {
   const { nodes, edges, client, onStatus } = params
+  const variables = params.variables ?? {}
   const concurrency = Math.max(1, params.concurrency ?? 3)
   const timeoutMs = params.timeoutMs ?? 120_000
   const retry: RetryOptions = { retries: 3, baseMs: 1000, ...params.retry }
@@ -226,13 +234,13 @@ export async function executeFlow(
       }
 
       if (node.data.type === 'input') {
-        const value = node.data.text ?? ''
+        const value = substituteVariables(node.data.text ?? '', variables)
         values.set(id, value)
         onStatus({ nodeId: id, status: 'done', output: value })
         return true
       }
 
-      const inputText = resolveNodeInput(node, edges, values, nodes)
+      const inputText = resolveNodeInput(node, edges, values, nodes, variables)
 
       if (node.data.type === 'prompt') {
         values.set(id, inputText)
@@ -255,7 +263,9 @@ export async function executeFlow(
       )
       const jsonMode = node.data.outputMode === 'json'
       const system = [
-        node.data.system?.trim(),
+        node.data.system
+          ? substituteVariables(node.data.system, variables).trim()
+          : undefined,
         jsonMode
           ? 'Respond with only a single valid JSON value. No prose and no code fences.'
           : undefined,

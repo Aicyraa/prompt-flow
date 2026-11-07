@@ -261,3 +261,45 @@ describe('executeFlow', () => {
     expect(statuses).toContainEqual({ nodeId: 'a', status: 'done', output: '' })
   })
 })
+
+describe('executeFlow variables', () => {
+  it('fills {{name}} in input text, templates and system prompts', async () => {
+    const nodes = [
+      node('in', 'input', { text: 'About {{topic}}' }),
+      node('p', 'prompt', { template: 'Write in {{language}}: {{input}}' }),
+      node('l', 'llm', { model: 'm', system: 'Be {{tone}}.' }),
+    ]
+    const generate = vi.fn(async (opts: GenerateOptions) => opts.prompt)
+    const { onStatus } = collect()
+    const result = await executeFlow({
+      nodes,
+      edges: [edge('in', 'p'), edge('p', 'l')],
+      client: null,
+      generate,
+      onStatus,
+      variables: { topic: 'cats', language: 'French', tone: 'brief' },
+    })
+    expect(result.succeeded).toBe(true)
+    expect(generate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        prompt: 'Write in French: About cats',
+        system: 'Be brief.',
+      }),
+      expect.anything(),
+    )
+  })
+
+  it('lets an upstream node label win over a variable of the same name', () => {
+    expect(
+      applyTemplate(
+        'A={{Article}} B={{audience}}',
+        [{ label: 'Article', value: 'the text' }],
+        { Article: 'WRONG', audience: 'kids' },
+      ),
+    ).toBe('A=the text B=kids')
+  })
+
+  it('leaves an unknown {{name}} as written', () => {
+    expect(applyTemplate('{{nope}}', [], {})).toBe('{{nope}}')
+  })
+})

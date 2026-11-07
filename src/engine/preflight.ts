@@ -1,6 +1,7 @@
 import type { FlowNode } from '../types/flow'
 import { DEFAULT_MODEL } from '../lib/nodes'
 import type { ErrorKind, ModelInfo } from '../lib/openrouter'
+import { missingVariables, variableUsers } from '../lib/variables'
 
 export interface PreflightIssue {
   nodeId?: string
@@ -11,6 +12,8 @@ export interface PreflightIssue {
 interface PreflightInput {
   nodes: FlowNode[]
   hasKey: boolean
+  /** Current variable values; omitted means "don't check variables". */
+  variables?: Record<string, string>
   /** Null when no real catalog has loaded; model checks are skipped then. */
   catalog: ModelInfo[] | null
 }
@@ -23,8 +26,23 @@ export function preflight({
   nodes,
   hasKey,
   catalog,
+  variables,
 }: PreflightInput): PreflightIssue[] {
   const issues: PreflightIssue[] = []
+
+  if (variables) {
+    for (const name of missingVariables(nodes, variables)) {
+      const users = variableUsers(nodes, name)
+      for (const user of users) {
+        issues.push({
+          nodeId: user.id,
+          kind: 'missing_variable',
+          message: `Fill in the variable {{${name}}} before running.`,
+        })
+      }
+    }
+  }
+
   const llmNodes = nodes.filter((n) => n.data.type === 'llm')
   if (llmNodes.length === 0) return issues
 
