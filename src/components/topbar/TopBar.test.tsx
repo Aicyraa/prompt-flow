@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ReactFlowProvider } from '@xyflow/react'
+import { useGraphStore } from '../../store/graphStore'
 import { useRunStore } from '../../store/runStore'
 import { useSettingsStore } from '../../store/settingsStore'
 import TopBar from './TopBar'
@@ -134,5 +135,62 @@ describe('Add node dropdown', () => {
     await user.click(screen.getByRole('button', { name: /Add node/ }))
     await user.click(document.body)
     expect(screen.queryByRole('menu')).toBeNull()
+  })
+})
+
+describe('TopBar view tools', () => {
+  it('opens the command palette from the search button', async () => {
+    const user = userEvent.setup()
+    useSettingsStore.setState({ paletteOpen: false })
+    setup()
+    await user.click(screen.getByRole('button', { name: 'Search commands' }))
+    expect(useSettingsStore.getState().paletteOpen).toBe(true)
+  })
+
+  it('toggles the minimap', async () => {
+    const user = userEvent.setup()
+    useSettingsStore.setState({ showMinimap: true })
+    setup()
+    await user.click(screen.getByRole('button', { name: 'Hide minimap' }))
+    expect(useSettingsStore.getState().showMinimap).toBe(false)
+    expect(screen.getByRole('button', { name: 'Show minimap' })).toBeTruthy()
+  })
+
+  it('keeps Tidy disabled until there is something to arrange', () => {
+    useGraphStore.setState({ nodes: [], edges: [] })
+    setup()
+    expect(
+      (screen.getByRole('button', { name: 'Tidy layout' }) as HTMLButtonElement)
+        .disabled,
+    ).toBe(true)
+  })
+
+  it('tidies a messy flow in one undoable step', async () => {
+    const user = userEvent.setup()
+    useGraphStore.setState({
+      nodes: [],
+      edges: [],
+      past: [],
+      future: [],
+      clipboard: null,
+    })
+    const g = useGraphStore.getState()
+    const a = g.addNode('input', { x: 900, y: 500 })
+    const b = g.addNode('llm', { x: 0, y: 0 })
+    g.connectNodes({
+      source: a.id,
+      target: b.id,
+      sourceHandle: null,
+      targetHandle: null,
+    })
+    setup()
+    await user.click(screen.getByRole('button', { name: 'Tidy layout' }))
+    const [na, nb] = useGraphStore.getState().nodes
+    expect(na.position.x).toBeLessThan(nb.position.x)
+    useGraphStore.getState().undo()
+    expect(useGraphStore.getState().nodes[0].position).toEqual({
+      x: 900,
+      y: 500,
+    })
   })
 })

@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import {
   ReactFlow,
   Background,
   BackgroundVariant,
   Controls,
+  MiniMap,
   useReactFlow,
   type Connection,
   type EdgeChange,
@@ -14,6 +15,7 @@ import {
 import type { FlowEdge, NodeType } from '../types/flow'
 import { canConnect } from '../lib/connections'
 import { useGraphStore } from '../store/graphStore'
+import { useSettingsStore } from '../store/settingsStore'
 import InputNode from './nodes/InputNode'
 import PromptNode from './nodes/PromptNode'
 import LLMNode from './nodes/LLMNode'
@@ -25,6 +27,18 @@ import RunLog from './run/RunLog'
 import NodeConfigPanel from './panels/NodeConfigPanel'
 import { useEditShortcuts } from './useEditShortcuts'
 import { useRevealSelected } from './useRevealSelected'
+import { useViewShortcuts } from './useViewShortcuts'
+import { PANEL_WIDTH_PX } from './panels/panelLayout'
+
+// Opened rarely, so it loads on demand.
+const CommandPalette = lazy(() => import('./palette/CommandPalette'))
+
+const MINIMAP_COLORS: Record<string, string> = {
+  input: '#34d399',
+  prompt: '#fbbf24',
+  llm: '#a78bfa',
+  output: '#38bdf8',
+}
 
 const nodeTypes = {
   input: InputNode,
@@ -51,6 +65,13 @@ export default function Canvas() {
   const containerRef = useRef<HTMLDivElement>(null)
   useEditShortcuts()
   useRevealSelected(containerRef)
+  useViewShortcuts()
+  const showMinimap = useSettingsStore((s) => s.showMinimap)
+  const paletteOpen = useSettingsStore((s) => s.paletteOpen)
+  // The settings panel docks on the right; keep the minimap clear of it.
+  const panelOpen = useGraphStore(
+    (s) => s.nodes.filter((n) => n.selected).length === 1,
+  )
 
   // New nodes chain onto the single selected node (and connect to it when
   // allowed); otherwise they appear at the centre of the visible canvas.
@@ -176,8 +197,34 @@ export default function Canvas() {
             color="#443B30"
           />
           <Controls />
+          {showMinimap && nodes.length > 0 && (
+            <MiniMap
+              pannable
+              zoomable
+              ariaLabel="Flow minimap"
+              nodeColor={(n) => MINIMAP_COLORS[n.type ?? ''] ?? '#726657'}
+              nodeStrokeWidth={0}
+              bgColor="#161310"
+              maskColor="rgba(15, 12, 10, 0.7)"
+              maskStrokeColor="#726657"
+              maskStrokeWidth={1}
+              className="!rounded-lg !border !border-charcoal-700"
+              style={{
+                width: 170,
+                height: 110,
+                marginRight: panelOpen ? PANEL_WIDTH_PX + 8 : 12,
+                marginBottom: 12,
+                transition: 'margin-right 240ms cubic-bezier(0.2, 0.8, 0.2, 1)',
+              }}
+            />
+          )}
         </ReactFlow>
       </div>
+      {paletteOpen && (
+        <Suspense fallback={null}>
+          <CommandPalette onAdd={addNode} />
+        </Suspense>
+      )}
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import type { NodeType } from '../../types/flow'
 import { useGraphStore } from '../../store/graphStore'
 import { useRunStore } from '../../store/runStore'
@@ -9,6 +9,7 @@ import { Icon, type IconName } from '../ui/Icon'
 import NodePalette from './NodePalette'
 import { useFlowFile } from './useFlowFile'
 import { useShortcuts } from './useShortcuts'
+import { useViewActions } from '../useViewActions'
 
 const iconButton =
   'flex h-8 w-8 items-center justify-center rounded-md text-charcoal-300 transition-[color,background-color,transform] active:scale-90 hover:bg-charcoal-800 hover:text-charcoal-50'
@@ -52,12 +53,24 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
   const runFlow = useRunAction()
   const { exportFlow, importFile } = useFlowFile()
   const fileInputRef = useRef<HTMLInputElement>(null)
-  // The guide opens once, automatically, on a first visit.
-  const [guideOpen, setGuideOpen] = useState(!hasSeenGuide)
+  const guideOpen = useSettingsStore((s) => s.guideOpen)
+  const openGuide = useSettingsStore((s) => s.openGuide)
+  const closeGuide = useSettingsStore((s) => s.closeGuide)
+  const openPalette = useSettingsStore((s) => s.openPalette)
+  const showMinimap = useSettingsStore((s) => s.showMinimap)
+  const toggleMinimap = useSettingsStore((s) => s.toggleMinimap)
+  const nodeCount = useGraphStore((s) => s.nodes.length)
+  const { tidy } = useViewActions()
 
-  const openGuide = () => setGuideOpen(true)
-  const closeGuide = () => {
-    setGuideOpen(false)
+  // The guide opens once, automatically, on a first visit.
+  useEffect(() => {
+    if (!hasSeenGuide) openGuide()
+    // Only on mount: closing it marks it seen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const dismissGuide = () => {
+    closeGuide()
     markGuideSeen()
   }
   useShortcuts({
@@ -87,9 +100,33 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
             onClick={redo}
             disabled={!canRedo}
           />
+          <IconButton
+            icon="layout"
+            label="Tidy layout"
+            onClick={() => void tidy()}
+            disabled={nodeCount < 2}
+          />
         </div>
 
         <div className="ml-auto flex items-center">
+          <button
+            type="button"
+            onClick={openPalette}
+            title="Search commands (Ctrl/⌘+K)"
+            aria-label="Search commands"
+            className="mr-1 flex h-8 items-center gap-2 rounded-md border border-charcoal-700 px-2.5 text-xs text-charcoal-400 transition-colors hover:border-charcoal-500 hover:text-charcoal-200"
+          >
+            <Icon name="search" className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Search</span>
+            <kbd className="hidden rounded bg-charcoal-800 px-1 text-[10px] sm:inline">
+              Ctrl K
+            </kbd>
+          </button>
+          <IconButton
+            icon="map"
+            label={showMinimap ? 'Hide minimap' : 'Show minimap'}
+            onClick={toggleMinimap}
+          />
           <IconButton
             icon="download"
             label="Export flow as JSON"
@@ -127,7 +164,7 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
         }}
       />
 
-      {guideOpen && <GuideModal onClose={closeGuide} />}
+      {guideOpen && <GuideModal onClose={dismissGuide} />}
     </>
   )
 }
