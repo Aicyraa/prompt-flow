@@ -194,3 +194,25 @@ describe('TopBar view tools', () => {
     })
   })
 })
+
+describe('TopBar variables', () => {
+  it('opens the variables dialog', async () => {
+    const user = userEvent.setup()
+    useGraphStore.setState({ nodes: [], edges: [], variables: {} })
+    useSettingsStore.setState({ variablesOpen: false })
+    setup()
+    await user.click(screen.getByRole('button', { name: 'Variables' }))
+    expect(useSettingsStore.getState().variablesOpen).toBe(true)
+  })
+
+  it('says how many variables still need a value', () => {
+    useGraphStore.setState({ nodes: [], edges: [], variables: { a: 'x' } })
+    const g = useGraphStore.getState()
+    const n = g.addNode('prompt', { x: 0, y: 0 })
+    g.updateNodeData(n.id, { template: '{{a}} {{b}} {{c}}' })
+    setup()
+    expect(
+      screen.getByRole('button', { name: 'Variables (2 need a value)' }),
+    ).toBeTruthy()
+  })
+})

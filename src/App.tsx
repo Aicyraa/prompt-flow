@@ -10,15 +10,20 @@ import { useSettingsStore } from './store/settingsStore'
 const SettingsModal = lazy(() => import('./components/settings/SettingsModal'))
 const HistoryModal = lazy(() => import('./components/history/HistoryModal'))
 const CostConfirmModal = lazy(() => import('./components/run/CostConfirmModal'))
+const VariablesModal = lazy(
+  () => import('./components/variables/VariablesModal'),
+)
 
 function Dialogs() {
   const settingsOpen = useSettingsStore((s) => s.settingsOpen)
   const historyOpen = useSettingsStore((s) => s.historyOpen)
+  const variablesOpen = useSettingsStore((s) => s.variablesOpen)
   const costPending = useRunStore((s) => s.pendingConfirm !== null)
   return (
     <Suspense fallback={null}>
       {settingsOpen && <SettingsModal />}
       {historyOpen && <HistoryModal />}
+      {variablesOpen && <VariablesModal />}
       {costPending && <CostConfirmModal />}
     </Suspense>
   )

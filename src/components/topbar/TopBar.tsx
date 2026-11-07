@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { NodeType } from '../../types/flow'
 import { useGraphStore } from '../../store/graphStore'
+import { missingVariables } from '../../lib/variables'
 import { useRunStore } from '../../store/runStore'
 import { useSettingsStore } from '../../store/settingsStore'
 import GuideModal from '../panels/GuideModal'
@@ -60,6 +61,10 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
   const showMinimap = useSettingsStore((s) => s.showMinimap)
   const toggleMinimap = useSettingsStore((s) => s.toggleMinimap)
   const nodeCount = useGraphStore((s) => s.nodes.length)
+  const openVariables = useSettingsStore((s) => s.openVariables)
+  const missingCount = useGraphStore(
+    (s) => missingVariables(s.nodes, s.variables).length,
+  )
   const { tidy } = useViewActions()
 
   // The guide opens once, automatically, on a first visit.
@@ -127,6 +132,23 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
             label={showMinimap ? 'Hide minimap' : 'Show minimap'}
             onClick={toggleMinimap}
           />
+          <div className="relative">
+            <IconButton
+              icon="variable"
+              label={
+                missingCount > 0
+                  ? `Variables (${missingCount} need a value)`
+                  : 'Variables'
+              }
+              onClick={openVariables}
+            />
+            {missingCount > 0 && (
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute top-1 right-1 h-2 w-2 rounded-full bg-amber-400"
+              />
+            )}
+          </div>
           <IconButton
             icon="download"
             label="Export flow as JSON"

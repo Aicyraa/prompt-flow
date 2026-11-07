@@ -6,6 +6,7 @@ import { useGraphStore } from '../../store/graphStore'
 import { useRunStore } from '../../store/runStore'
 import { useSettingsStore } from '../../store/settingsStore'
 import { useRunAction } from '../run/useRunAction'
+import { useRunReport } from '../run/useRunReport'
 import { useFlowFile } from '../topbar/useFlowFile'
 import { useViewActions } from '../useViewActions'
 import { showUndoToast } from '../ui/undoToast'
@@ -37,7 +38,9 @@ export function useCommands(onAdd: (type: NodeType) => void): Command[] {
   const openSettings = useSettingsStore((s) => s.openSettings)
   const openHistory = useSettingsStore((s) => s.openHistory)
   const openGuide = useSettingsStore((s) => s.openGuide)
+  const openVariables = useSettingsStore((s) => s.openVariables)
   const runFlow = useRunAction()
+  const report = useRunReport()
   const { exportFlow, pickFile } = useFlowFile()
   const { tidy, fitAll, fitSelection } = useViewActions()
   const { fitView } = useReactFlow()
@@ -166,6 +169,21 @@ export function useCommands(onAdd: (type: NodeType) => void): Command[] {
         run: pickFile,
       },
       {
+        id: 'report',
+        title: 'Download run report (.md)',
+        group: 'Flow',
+        keywords: 'export markdown summary result',
+        enabled: report.available,
+        run: report.download,
+      },
+      {
+        id: 'variables',
+        title: 'Edit variables',
+        group: 'Flow',
+        keywords: 'values placeholders parameters fill',
+        run: openVariables,
+      },
+      {
         id: 'history',
         title: 'Open run history',
         group: 'App',
@@ -208,6 +226,9 @@ export function useCommands(onAdd: (type: NodeType) => void): Command[] {
     openHistory,
     openSettings,
     openGuide,
+    openVariables,
+    report.available,
+    report.download,
     tidy,
     fitAll,
     fitSelection,
