@@ -21,3 +21,7 @@ graphify-out/cost.json
 graphify-out/graph.html
 graphify-out/.graphify_*
 graphify-out/20*/
+
+# Playwright
+test-results/
+playwright-report/
