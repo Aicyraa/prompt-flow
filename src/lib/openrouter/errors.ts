@@ -15,9 +15,14 @@ export interface ClassifiedError {
   message: string
 }
 
-/** Strip anything that looks like an OpenRouter key from text. */
+/** Strip anything that looks like an API key from text. */
 export function redactSecrets(text: string): string {
-  return text.replace(/sk-or-[A-Za-z0-9_-]+/g, 'sk-or-…')
+  return text
+    .replace(/sk-or-[A-Za-z0-9_-]+/g, 'sk-or-…')
+    .replace(/sk-ant-[A-Za-z0-9_-]+/g, 'sk-ant-…')
+    .replace(/sk-[A-Za-z0-9_-]{16,}/g, 'sk-…')
+    .replace(/AIza[A-Za-z0-9_-]{20,}/g, 'AIza…')
+    .replace(/gsk_[A-Za-z0-9]{16,}/g, 'gsk_…')
 }
 
 export class NoKeyError extends Error {
@@ -56,12 +61,12 @@ export function classifyError(err: unknown): ClassifiedError {
     case 403:
       return {
         kind: 'invalid_key',
-        message: 'OpenRouter rejected the API key. Check it in Settings.',
+        message: 'The provider rejected the API key. Check it in Settings.',
       }
     case 402:
       return {
         kind: 'no_credits',
-        message: 'Out of OpenRouter credits. Add credits and retry.',
+        message: 'Out of credits or quota. Add credits and retry.',
       }
     case 404:
       return {
@@ -71,7 +76,7 @@ export function classifyError(err: unknown): ClassifiedError {
     case 429:
       return {
         kind: 'rate_limit',
-        message: 'Rate limited by OpenRouter. Wait a moment and retry.',
+        message: 'Rate limited by the provider. Wait a moment and retry.',
       }
     case 400:
     case 422:
@@ -80,7 +85,7 @@ export function classifyError(err: unknown): ClassifiedError {
   if (err instanceof TypeError || /connection|network|fetch/i.test(raw)) {
     return {
       kind: 'network',
-      message: 'Could not reach OpenRouter. Check your connection.',
+      message: 'Could not reach the provider. Check your connection.',
     }
   }
   return { kind: 'unknown', message }

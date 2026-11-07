@@ -1,10 +1,6 @@
 import { create } from 'zustand'
 import type { NodeRun, Usage } from '../types/flow'
-import {
-  createOpenRouterClient,
-  resolveApiKey,
-  type ErrorKind,
-} from '../lib/openrouter'
+import { resolveApiKey, type ErrorKind } from '../lib/openrouter'
 import {
   executeFlow,
   getDownstreamIds,
@@ -15,6 +11,7 @@ import { preflight } from '../engine/preflight'
 import { nanoid } from 'nanoid'
 import { useGraphStore } from './graphStore'
 import { truncateOutput, useHistoryStore } from './historyStore'
+import { createProviderClient } from '../lib/providers'
 import { useModelStore } from './modelStore'
 import { useSettingsStore } from './settingsStore'
 
@@ -94,7 +91,10 @@ export const useRunStore = create<RunStore>()((set, get) => ({
     if (get().isRunning) return null
 
     const { nodes, edges } = useGraphStore.getState()
-    const apiKey = resolveApiKey(useSettingsStore.getState())
+    const settings = useSettingsStore.getState()
+    const apiKey = resolveApiKey(settings)
+    // Without the user's own key only the dev OpenRouter fallback applies.
+    const provider = settings.byokEnabled ? settings.provider : 'openrouter'
     const { hasCatalog, models, getModel } = useModelStore.getState()
 
     const issues = preflight({
@@ -162,7 +162,7 @@ export const useRunStore = create<RunStore>()((set, get) => ({
       const { succeeded, failedNodeId, cancelled } = await executeFlow({
         nodes,
         edges,
-        client: createOpenRouterClient(apiKey),
+        client: createProviderClient(provider, apiKey),
         getModel,
         onStatus: get().apply,
         signal: controller.signal,

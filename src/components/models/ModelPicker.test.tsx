@@ -73,7 +73,7 @@ describe('ModelPicker', () => {
 
   it('warns when the stored model is not in the loaded catalog', () => {
     render(<ModelPicker value="gone/model" onChange={() => {}} />)
-    expect(screen.getByText(/Not in the OpenRouter catalog/)).toBeTruthy()
+    expect(screen.getByText(/Not available for your API key/)).toBeTruthy()
   })
 
   it('toggles a favourite without selecting the model', async () => {

@@ -4,14 +4,14 @@ import {
   classifyError,
   NoKeyError,
   type ErrorKind,
-  generateText,
   type GenerateContext,
   type GenerateOptions,
   type GenerateResult,
   TimeoutError,
   type ModelInfo,
-  type OpenRouterClient,
+  type ProviderClient,
 } from '../lib/openrouter'
+import { generate } from '../lib/providers'
 import { DEFAULT_MODEL } from '../lib/nodes'
 import { extractJson } from '../lib/json'
 import { findCycleNodeIds, topologicalSort } from './topologicalSort'
@@ -41,7 +41,7 @@ export interface NodeStatusUpdate {
 export interface ExecuteFlowParams {
   nodes: FlowNode[]
   edges: FlowEdge[]
-  client: OpenRouterClient | null
+  client: ProviderClient | null
   generate?: LlmRunner
   /** Catalog lookup: drops unsupported params and prices usage. */
   getModel?: (id: string) => ModelInfo | undefined
@@ -169,7 +169,7 @@ export async function executeFlow(
   const timeoutMs = params.timeoutMs ?? 120_000
   const retry: RetryOptions = { retries: 3, baseMs: 1000, ...params.retry }
   const runner: LlmRunner =
-    params.generate ?? ((options, ctx) => generateText(client!, options, ctx))
+    params.generate ?? ((options, ctx) => generate(client!, options, ctx))
 
   const cycleIds = findCycleNodeIds(
     nodes.map((n) => n.id),

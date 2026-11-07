@@ -14,7 +14,7 @@ export function useRunAction() {
       if (!summary) return
       if (summary.blocked === 'cost') return // the confirm dialog takes over
       if (summary.blocked === 'no_key') {
-        toast.error('Add your OpenRouter API key to run models.')
+        toast.error('Add an API key to run models.')
         openSettings()
       } else if (summary.cancelled) {
         toast('Run stopped')

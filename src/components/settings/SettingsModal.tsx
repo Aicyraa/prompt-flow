@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { maskKey } from '../../lib/openrouter'
+import { PROVIDERS } from '../../lib/providers/types'
+import { connectKey, syncModels } from '../../store/connection'
 import { useModelStore } from '../../store/modelStore'
 import { useHistoryStore } from '../../store/historyStore'
 import { useSettingsStore } from '../../store/settingsStore'
@@ -12,6 +14,8 @@ const btn =
 function KeyStatus() {
   const status = useSettingsStore((s) => s.keyStatus)
   const info = useSettingsStore((s) => s.keyInfo)
+  const provider = useSettingsStore((s) => s.provider)
+  const modelCount = useModelStore((s) => s.usable.length)
   const error = useSettingsStore((s) => s.keyError)
 
   if (status === 'checking') {
@@ -19,6 +23,8 @@ function KeyStatus() {
   }
   if (status === 'valid') {
     const parts = [
+      PROVIDERS[provider].name,
+      `${modelCount} models`,
       info?.label,
       info?.limitRemaining != null
         ? `$${info.limitRemaining.toFixed(2)} left`
@@ -35,7 +41,7 @@ function KeyStatus() {
   if (status === 'rejected') {
     return (
       <p role="alert" className="text-xs text-rose-300">
-        OpenRouter rejected this key.
+        No supported provider accepted this key.
       </p>
     )
   }
@@ -56,15 +62,13 @@ export default function SettingsModal() {
 }
 
 function SettingsDialog() {
-  const byokEnabled = useSettingsStore((s) => s.byokEnabled)
   const apiKey = useSettingsStore((s) => s.apiKey)
   const persistence = useSettingsStore((s) => s.keyPersistence)
   const keyStatus = useSettingsStore((s) => s.keyStatus)
-  const setByokEnabled = useSettingsStore((s) => s.setByokEnabled)
   const setApiKey = useSettingsStore((s) => s.setApiKey)
   const setKeyPersistence = useSettingsStore((s) => s.setKeyPersistence)
   const removeKey = useSettingsStore((s) => s.removeKey)
-  const verify = useSettingsStore((s) => s.verify)
+  const provider = useSettingsStore((s) => s.provider)
   const costThreshold = useSettingsStore((s) => s.costThresholdUsd)
   const setCostThreshold = useSettingsStore((s) => s.setCostThreshold)
   const saveHistory = useSettingsStore((s) => s.saveHistory)
@@ -77,14 +81,13 @@ function SettingsDialog() {
   const hasCatalog = useModelStore((s) => s.hasCatalog)
   const catalogStatus = useModelStore((s) => s.status)
   const fetchedAt = useModelStore((s) => s.fetchedAt)
-  const loadModels = useModelStore((s) => s.load)
 
   const [reveal, setReveal] = useState(false)
 
   return (
     <Modal
       title="Settings"
-      subtitle="Use your own OpenRouter key"
+      subtitle="Bring your own API key"
       onClose={close}
       footer={
         <button
@@ -97,26 +100,14 @@ function SettingsDialog() {
       }
     >
       <div className="space-y-5 px-5 py-4">
-        <label className="flex cursor-pointer items-start gap-3">
-          <input
-            type="checkbox"
-            role="switch"
-            checked={byokEnabled}
-            onChange={(e) => setByokEnabled(e.target.checked)}
-            className="mt-0.5 h-4 w-4 accent-violet-400"
-          />
-          <span>
-            <span className="block text-sm font-medium text-charcoal-50">
-              Use my own OpenRouter API key
-            </span>
-            <span className="block text-[11px] text-charcoal-400">
-              Requests go straight from your browser to OpenRouter. PromptFlow
-              has no server and never sees your key.
-            </span>
-          </span>
-        </label>
+        <p className="text-[11px] text-charcoal-400">
+          Paste a key from OpenRouter, OpenAI, Anthropic, Google, Groq or
+          Mistral. PromptFlow detects the provider and lists the models your key
+          can use. Requests go straight from your browser to the provider;
+          PromptFlow has no server and never sees your key.
+        </p>
 
-        {byokEnabled ? (
+        {
           <div className="space-y-3">
             <Field label="API key">
               {(id) => (
@@ -126,7 +117,7 @@ function SettingsDialog() {
                     type={reveal ? 'text' : 'password'}
                     value={apiKey}
                     onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="sk-or-v1-…"
+                    placeholder="Paste any API key"
                     autoComplete="off"
                     spellCheck={false}
                     className={`${inputClass} font-mono focus:border-violet-400/60`}
@@ -151,11 +142,11 @@ function SettingsDialog() {
             <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => void verify()}
+                onClick={() => void connectKey()}
                 disabled={!apiKey || keyStatus === 'checking'}
                 className={`${btn} border-violet-400/40 text-violet-300 hover:bg-violet-400/10`}
               >
-                Test key
+                Connect & list models
               </button>
               <button
                 type="button"
@@ -206,12 +197,7 @@ function SettingsDialog() {
               ))}
             </fieldset>
           </div>
-        ) : (
-          <p className="rounded-md border border-charcoal-700 bg-charcoal-800/40 p-3 text-xs text-charcoal-300">
-            Flows that call a model can’t run until you turn this on and add a
-            key. Input, Prompt and Output nodes still work without one.
-          </p>
-        )}
+        }
 
         <section className="space-y-2 border-t border-charcoal-800 pt-4">
           <h3 className="text-xs font-semibold text-charcoal-100">Running</h3>
@@ -262,7 +248,7 @@ function SettingsDialog() {
           <h3 className="text-xs font-semibold text-charcoal-100">Models</h3>
           <p className="text-[11px] text-charcoal-400">
             {hasCatalog
-              ? `${catalogCount} models from OpenRouter${
+              ? `${catalogCount} models from ${PROVIDERS[provider].name}${
                   fetchedAt
                     ? ` · updated ${new Date(fetchedAt).toLocaleString()}`
                     : ''
@@ -273,7 +259,7 @@ function SettingsDialog() {
           </p>
           <button
             type="button"
-            onClick={() => void loadModels({ force: true })}
+            onClick={() => void syncModels({ force: true })}
             disabled={catalogStatus === 'loading'}
             className={`${btn} border-charcoal-700 text-charcoal-200 hover:bg-charcoal-800`}
           >

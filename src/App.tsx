@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect } from 'react'
 import { ReactFlowProvider } from '@xyflow/react'
 import { Toaster } from 'react-hot-toast'
 import Canvas from './components/Canvas'
-import { useModelStore } from './store/modelStore'
+import { syncModels } from './store/connection'
 import { useRunStore } from './store/runStore'
 import { useSettingsStore } from './store/settingsStore'
 
@@ -25,9 +25,9 @@ function Dialogs() {
 }
 
 export default function App() {
-  // Load the model catalog once (cached for 24h, refreshed in the background).
+  // Load the model list once (cached for 24h, refreshed in the background).
   useEffect(() => {
-    void useModelStore.getState().load()
+    void syncModels()
   }, [])
 
   return (

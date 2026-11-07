@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import {
   API_KEY_STORAGE_KEY,
   SETTINGS_STORAGE_KEY,
@@ -69,48 +69,6 @@ describe('settingsStore API key', () => {
     expect(settingsBlob).not.toContain(KEY)
     expect(flowBlob).not.toContain(KEY)
     expect(exported).not.toContain(KEY)
-  })
-})
-
-describe('settingsStore verify', () => {
-  it('marks a valid key and stores account info', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () =>
-        Response.json({ data: { label: 'my-key', usage: 1.5 } }),
-      ),
-    )
-    useSettingsStore.getState().setApiKey(KEY)
-    await useSettingsStore.getState().verify()
-    expect(useSettingsStore.getState().keyStatus).toBe('valid')
-    expect(useSettingsStore.getState().keyInfo?.label).toBe('my-key')
-    vi.unstubAllGlobals()
-  })
-
-  it('marks a 401 as rejected', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => new Response('{}', { status: 401 })),
-    )
-    useSettingsStore.getState().setApiKey(KEY)
-    await useSettingsStore.getState().verify()
-    expect(useSettingsStore.getState().keyStatus).toBe('rejected')
-    vi.unstubAllGlobals()
-  })
-
-  it('reports a network failure without leaking the key', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(async () => {
-        throw new TypeError('Failed to fetch')
-      }),
-    )
-    useSettingsStore.getState().setApiKey(KEY)
-    await useSettingsStore.getState().verify()
-    const s = useSettingsStore.getState()
-    expect(s.keyStatus).toBe('error')
-    expect(s.keyError).not.toContain(KEY)
-    vi.unstubAllGlobals()
   })
 })
 

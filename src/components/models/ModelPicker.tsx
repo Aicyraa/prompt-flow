@@ -174,7 +174,7 @@ export default function ModelPicker({
           </span>
           {missing && (
             <span className="block text-[10px] text-amber-300">
-              Not in the OpenRouter catalog. Pick another.
+              Not available for your API key. Pick another.
             </span>
           )}
         </span>

@@ -3,6 +3,7 @@ import {
   formatPrice,
   type ModelInfo,
 } from '../../lib/openrouter'
+import { useModelStore } from '../../store/modelStore'
 import ModelBadges from './ModelBadge'
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -15,6 +16,7 @@ function Row({ label, value }: { label: string; value: string }) {
 }
 
 export default function ModelDetails({ model }: { model: ModelInfo }) {
+  const provider = useModelStore((s) => s.provider)
   return (
     <div className="space-y-2 rounded-md border border-charcoal-700 bg-charcoal-800/40 p-2.5 text-[11px]">
       <ModelBadges model={model} />
@@ -59,14 +61,16 @@ export default function ModelDetails({ model }: { model: ModelInfo }) {
           </span>
         </p>
       )}
-      <a
-        href={`https://openrouter.ai/${model.id}`}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-block text-violet-300 underline underline-offset-2 hover:text-violet-200"
-      >
-        View on OpenRouter
-      </a>
+      {provider === 'openrouter' && (
+        <a
+          href={`https://openrouter.ai/${model.id}`}
+          target="_blank"
+          rel="noreferrer"
+          className="inline-block text-violet-300 underline underline-offset-2 hover:text-violet-200"
+        >
+          View on OpenRouter
+        </a>
+      )}
     </div>
   )
 }

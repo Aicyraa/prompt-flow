@@ -48,7 +48,7 @@ export function preflight({
           issues.push({
             nodeId: node.id,
             kind: 'model_unavailable',
-            message: `Model "${model}" is not in the OpenRouter catalog. Pick another.`,
+            message: `Model "${model}" is not available for your API key. Pick another.`,
           })
         }
       }

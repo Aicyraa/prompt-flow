@@ -11,7 +11,7 @@ export interface KeyInfo {
 
 export class KeyRejectedError extends Error {
   constructor() {
-    super('OpenRouter rejected this API key.')
+    super('The provider rejected this API key.')
   }
 }
 

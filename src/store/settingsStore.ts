@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { KeyRejectedError, verifyKey, type KeyInfo } from '../lib/openrouter'
+import type { KeyInfo } from '../lib/openrouter'
+import { detectByPrefix, type ProviderId } from '../lib/providers/types'
 
 export const SETTINGS_STORAGE_KEY = 'promptflow:settings'
 /** The API key lives under its own key, never inside the flow or settings. */
@@ -45,10 +46,17 @@ function writeKey(key: string, persistence: KeyPersistence) {
   }
 }
 
+export interface ToolbarPos {
+  x: number
+  y: number
+}
+
 interface SettingsStore {
   byokEnabled: boolean
   apiKey: string
   keyPersistence: KeyPersistence
+  /** Provider the saved key belongs to (detected when the key is connected). */
+  provider: ProviderId
   keyStatus: KeyStatus
   keyInfo: KeyInfo | null
   keyError: string | null
@@ -61,12 +69,17 @@ interface SettingsStore {
   historyOpen: boolean
   favouriteModels: string[]
   recentModels: string[]
+  /** Floating toolbar: top-left in px, or null for the default centred spot. */
+  toolbarPos: ToolbarPos | null
+  toolbarCollapsed: boolean
 
+  setToolbarPos: (pos: ToolbarPos | null) => void
+  setToolbarCollapsed: (collapsed: boolean) => void
   setByokEnabled: (enabled: boolean) => void
   setApiKey: (key: string) => void
   setKeyPersistence: (persistence: KeyPersistence) => void
   removeKey: () => void
-  verify: () => Promise<void>
+  setProvider: (provider: ProviderId) => void
   openSettings: () => void
   closeSettings: () => void
   markGuideSeen: () => void
@@ -86,6 +99,7 @@ export const useSettingsStore = create<SettingsStore>()(
       byokEnabled: false,
       apiKey: initialKey.key,
       keyPersistence: initialKey.persistence,
+      provider: 'openrouter',
       keyStatus: 'unknown',
       keyInfo: null,
       keyError: null,
@@ -96,13 +110,26 @@ export const useSettingsStore = create<SettingsStore>()(
       historyOpen: false,
       favouriteModels: [],
       recentModels: [],
+      toolbarPos: null,
+      toolbarCollapsed: false,
 
+      setToolbarPos: (toolbarPos) => set({ toolbarPos }),
+      setToolbarCollapsed: (toolbarCollapsed) => set({ toolbarCollapsed }),
       setByokEnabled: (byokEnabled) => set({ byokEnabled }),
 
       setApiKey: (key) => {
         const apiKey = key.trim()
         writeKey(apiKey, get().keyPersistence)
-        set({ apiKey, keyStatus: 'unknown', keyInfo: null, keyError: null })
+        set({
+          apiKey,
+          // Importing a key means using it.
+          byokEnabled: apiKey !== '',
+          // A recognisable prefix tells us the provider before any request.
+          provider: detectByPrefix(apiKey) ?? get().provider,
+          keyStatus: 'unknown',
+          keyInfo: null,
+          keyError: null,
+        })
       },
 
       setKeyPersistence: (keyPersistence) => {
@@ -114,32 +141,14 @@ export const useSettingsStore = create<SettingsStore>()(
         writeKey('', get().keyPersistence)
         set({
           apiKey: '',
+          byokEnabled: false,
           keyStatus: 'unknown',
           keyInfo: null,
           keyError: null,
         })
       },
 
-      verify: async () => {
-        const key = get().apiKey
-        if (!key) return
-        set({ keyStatus: 'checking', keyError: null })
-        try {
-          const keyInfo = await verifyKey(key)
-          if (get().apiKey !== key) return
-          set({ keyStatus: 'valid', keyInfo })
-        } catch (err) {
-          if (get().apiKey !== key) return
-          if (err instanceof KeyRejectedError) {
-            set({ keyStatus: 'rejected', keyInfo: null })
-          } else {
-            set({
-              keyStatus: 'error',
-              keyError: 'Could not check the key. Try again.',
-            })
-          }
-        }
-      },
+      setProvider: (provider) => set({ provider }),
 
       openSettings: () => set({ settingsOpen: true }),
       closeSettings: () => set({ settingsOpen: false }),
@@ -172,11 +181,14 @@ export const useSettingsStore = create<SettingsStore>()(
       partialize: (s) => ({
         byokEnabled: s.byokEnabled,
         keyPersistence: s.keyPersistence,
+        provider: s.provider,
         hasSeenGuide: s.hasSeenGuide,
         costThresholdUsd: s.costThresholdUsd,
         saveHistory: s.saveHistory,
         favouriteModels: s.favouriteModels,
         recentModels: s.recentModels,
+        toolbarPos: s.toolbarPos,
+        toolbarCollapsed: s.toolbarCollapsed,
       }),
     },
   ),

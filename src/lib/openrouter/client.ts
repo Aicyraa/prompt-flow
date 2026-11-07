@@ -1,4 +1,5 @@
 import type { Usage } from '../../types/flow'
+import type { ProviderId } from '../providers/types'
 
 export const OPENROUTER_BASE_URL = 'https://openrouter.ai/api/v1'
 
@@ -28,17 +29,20 @@ export interface GenerateResult {
   usage?: Usage
 }
 
-/** Everything needed to call OpenRouter; the key never leaves this object. */
-export interface OpenRouterClient {
+/** Everything needed to call a provider; the key never leaves this object. */
+export interface ProviderClient {
+  readonly provider: ProviderId
   readonly apiKey: string
   readonly baseURL: string
 }
 
+export type OpenRouterClient = ProviderClient
+
 export function createOpenRouterClient(
   apiKey: string | undefined,
-): OpenRouterClient | null {
+): ProviderClient | null {
   if (!apiKey) return null
-  return { apiKey, baseURL: OPENROUTER_BASE_URL }
+  return { provider: 'openrouter', apiKey, baseURL: OPENROUTER_BASE_URL }
 }
 
 /** An HTTP error from OpenRouter, shaped for `classifyError` and retries. */
@@ -52,7 +56,7 @@ export class ApiError extends Error {
   }
 }
 
-async function toApiError(res: Response): Promise<ApiError> {
+export async function toApiError(res: Response): Promise<ApiError> {
   let message = `Request failed (${res.status})`
   try {
     const body = (await res.json()) as { error?: { message?: string } }
@@ -74,9 +78,9 @@ interface StreamChunk {
 }
 
 /** Yields the JSON payload of each `data:` line in a server-sent-event stream. */
-export async function* readSse(
+export async function* readSse<T = StreamChunk>(
   body: ReadableStream<Uint8Array>,
-): AsyncGenerator<StreamChunk> {
+): AsyncGenerator<T> {
   const reader = body.getReader()
   const decoder = new TextDecoder()
   let buffer = ''
@@ -93,7 +97,7 @@ export async function* readSse(
         if (payload === '[DONE]') return
         if (!payload) continue
         try {
-          yield JSON.parse(payload) as StreamChunk
+          yield JSON.parse(payload) as T
         } catch {
           // ignore a malformed fragment rather than failing the whole reply
         }
@@ -105,9 +109,9 @@ export async function* readSse(
   }
 }
 
-/** Streams a completion, reporting partial text and final usage. */
+/** Streams a completion from an OpenAI-compatible API (OpenRouter, OpenAI, Groq, Mistral). */
 export async function generateText(
-  client: OpenRouterClient,
+  client: ProviderClient,
   {
     model,
     temperature,
@@ -120,6 +124,11 @@ export async function generateText(
   { signal, onToken }: GenerateContext = {},
 ): Promise<GenerateResult> {
   const inBrowser = typeof window !== 'undefined' && 'location' in window
+  const { provider } = client
+  const isOpenRouter = provider === 'openrouter'
+  // Newer OpenAI models reject max_tokens; Mistral and others reject extras.
+  const tokenField =
+    provider === 'openai' ? 'max_completion_tokens' : 'max_tokens'
   const res = await fetch(`${client.baseURL}/chat/completions`, {
     method: 'POST',
     signal,
@@ -127,8 +136,12 @@ export async function generateText(
       Authorization: `Bearer ${client.apiKey}`,
       'Content-Type': 'application/json',
       // Optional OpenRouter attribution headers.
-      'X-Title': 'PromptFlow',
-      ...(inBrowser ? { 'HTTP-Referer': window.location.origin } : {}),
+      ...(isOpenRouter
+        ? {
+            'X-Title': 'PromptFlow',
+            ...(inBrowser ? { 'HTTP-Referer': window.location.origin } : {}),
+          }
+        : {}),
     },
     body: JSON.stringify({
       model,
@@ -137,12 +150,16 @@ export async function generateText(
         { role: 'user', content: prompt },
       ],
       stream: true,
-      stream_options: { include_usage: true },
+      ...(provider !== 'mistral'
+        ? { stream_options: { include_usage: true } }
+        : {}),
       ...(temperature !== undefined ? { temperature } : {}),
-      ...(maxTokens !== undefined ? { max_tokens: maxTokens } : {}),
+      ...(maxTokens !== undefined ? { [tokenField]: maxTokens } : {}),
       ...(jsonResponse ? { response_format: { type: 'json_object' } } : {}),
-      ...(reasoningEffort ? { reasoning: { effort: reasoningEffort } } : {}),
-      usage: { include: true },
+      ...(isOpenRouter && reasoningEffort
+        ? { reasoning: { effort: reasoningEffort } }
+        : {}),
+      ...(isOpenRouter ? { usage: { include: true } } : {}),
     }),
   })
   if (!res.ok) throw await toApiError(res)

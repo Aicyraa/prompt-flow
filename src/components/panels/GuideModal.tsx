@@ -7,11 +7,11 @@ const STEPS: { title: string; body: string }[] = [
   },
   {
     title: 'Add your API key',
-    body: 'Open Settings, turn on “Use my own OpenRouter API key” and paste your key. It stays in this browser and goes only to OpenRouter.',
+    body: 'Open Settings, turn on “Use my own API key” and paste a key from OpenRouter, OpenAI, Anthropic, Google, Groq or Mistral. PromptFlow detects the provider and lists the models your key can use. The key stays in this browser and goes only to that provider.',
   },
   {
     title: 'Configure nodes',
-    body: 'Select a node to see all its settings. Pick any OpenRouter model, and use {{input}} in a Prompt template to insert upstream text.',
+    body: 'Select a node to see all its settings. Pick any model your key can use, and use {{input}} in a Prompt template to insert upstream text.',
   },
   {
     title: 'Tune a connection',

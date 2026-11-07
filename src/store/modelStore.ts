@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { fetchModels, isUsableModel, type ModelInfo } from '../lib/openrouter'
+import { listProviderModels, type ProviderId } from '../lib/providers'
 import { DEFAULT_MODEL } from '../lib/nodes'
 
 export const MODEL_CACHE_KEY = 'promptflow:models'
@@ -36,9 +37,12 @@ interface CacheEntry {
   models: ModelInfo[]
 }
 
-function readCache(): CacheEntry | null {
+const cacheKey = (provider: ProviderId) =>
+  provider === 'openrouter' ? MODEL_CACHE_KEY : `${MODEL_CACHE_KEY}:${provider}`
+
+function readCache(provider: ProviderId): CacheEntry | null {
   try {
-    const raw = localStorage.getItem(MODEL_CACHE_KEY)
+    const raw = localStorage.getItem(cacheKey(provider))
     if (!raw) return null
     const entry = JSON.parse(raw) as { fetchedAt?: number; models?: unknown }
     if (typeof entry.fetchedAt !== 'number') return null
@@ -57,9 +61,9 @@ function readCache(): CacheEntry | null {
   }
 }
 
-function writeCache(entry: CacheEntry) {
+function writeCache(provider: ProviderId, entry: CacheEntry) {
   try {
-    localStorage.setItem(MODEL_CACHE_KEY, JSON.stringify(entry))
+    localStorage.setItem(cacheKey(provider), JSON.stringify(entry))
   } catch {
     // Quota exceeded or storage blocked: the in-memory catalog still works.
   }
@@ -74,9 +78,22 @@ interface ModelStore {
   error: string | null
   /** True once a real catalog (cached or fetched) is loaded. */
   hasCatalog: boolean
-  /** Stale-while-revalidate: use the cache immediately, refresh if old. */
-  load: (opts?: { force?: boolean }) => Promise<void>
+  /** Provider the loaded catalog belongs to. */
+  provider: ProviderId
+  /**
+   * Stale-while-revalidate: use the cache immediately, refresh if old.
+   * With no key the public OpenRouter catalog is used.
+   */
+  load: (opts?: LoadOptions) => Promise<void>
+  /** Replace the catalog with models just fetched for a key. */
+  setCatalog: (provider: ProviderId, models: ModelInfo[]) => void
   getModel: (id: string) => ModelInfo | undefined
+}
+
+export interface LoadOptions {
+  force?: boolean
+  provider?: ProviderId
+  apiKey?: string
 }
 
 let inflight: Promise<void> | null = null
@@ -97,10 +114,27 @@ export const useModelStore = create<ModelStore>()((set, get) => ({
   fetchedAt: null,
   error: null,
   hasCatalog: false,
+  provider: 'openrouter',
 
-  load: async ({ force = false } = {}) => {
+  setCatalog: (provider, models) => {
+    const now = Date.now()
+    writeCache(provider, { fetchedAt: now, models })
+    set({ ...applyModels(models, now), provider, status: 'ready', error: null })
+  },
+
+  load: async ({ force = false, provider = 'openrouter', apiKey } = {}) => {
     if (inflight) return inflight
-    const cached = get().hasCatalog ? null : readCache()
+    // A catalog from another provider must never be reused for this one.
+    if (get().provider !== provider) {
+      set({
+        models: provider === 'openrouter' ? FALLBACK_MODELS : [],
+        usable: provider === 'openrouter' ? FALLBACK_MODELS : [],
+        fetchedAt: null,
+        hasCatalog: false,
+        provider,
+      })
+    }
+    const cached = get().hasCatalog ? null : readCache(provider)
     if (cached) {
       set({ ...applyModels(cached.models, cached.fetchedAt), status: 'ready' })
     }
@@ -112,9 +146,14 @@ export const useModelStore = create<ModelStore>()((set, get) => ({
     if (!get().hasCatalog) set({ status: 'loading', error: null })
     inflight = (async () => {
       try {
-        const models = await fetchModels()
+        const models =
+          provider === 'openrouter' && !apiKey
+            ? await fetchModels()
+            : (await listProviderModels(provider, apiKey ?? '')).models
+        // The user may have switched provider while this was in flight.
+        if (get().provider !== provider) return
         const now = Date.now()
-        writeCache({ fetchedAt: now, models })
+        writeCache(provider, { fetchedAt: now, models })
         set({ ...applyModels(models, now), status: 'ready', error: null })
       } catch (err) {
         set({

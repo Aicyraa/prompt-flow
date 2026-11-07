@@ -9,7 +9,11 @@ import {
   readSse,
 } from './client'
 
-const client = { apiKey: 'sk-or-v1-test', baseURL: OPENROUTER_BASE_URL }
+const client = {
+  provider: 'openrouter' as const,
+  apiKey: 'sk-or-v1-test',
+  baseURL: OPENROUTER_BASE_URL,
+}
 
 /** A streaming Response whose body arrives in the given byte chunks. */
 function sseResponse(parts: string[], init: ResponseInit = {}) {
@@ -256,6 +260,7 @@ describe('createOpenRouterClient', () => {
 
   it('creates a client pointed at OpenRouter', () => {
     expect(createOpenRouterClient('test-key')).toEqual({
+      provider: 'openrouter',
       apiKey: 'test-key',
       baseURL: OPENROUTER_BASE_URL,
     })

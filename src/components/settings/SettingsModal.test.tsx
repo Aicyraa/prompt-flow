@@ -32,44 +32,43 @@ describe('SettingsModal', () => {
     expect(screen.queryByRole('dialog', { hidden: true })).toBeNull()
   })
 
-  it('explains that runs need a key while BYOK is off', () => {
-    render(<SettingsModal />)
-    expect(screen.queryByLabelText('API key')).toBeNull()
-    expect(screen.getByText(/can’t run until you turn this on/)).toBeTruthy()
-  })
-
-  it('toggling on reveals a masked key field that stores the key per tab', async () => {
+  it('shows the key field straight away and stores the key per tab', async () => {
     const user = userEvent.setup()
     render(<SettingsModal />)
 
-    await user.click(screen.getByRole('switch'))
     const field = screen.getByLabelText('API key') as HTMLInputElement
     expect(field.type).toBe('password')
     expect(field.autocomplete).toBe('off')
 
     await user.type(field, 'sk-or-v1-abc123')
     expect(useSettingsStore.getState().apiKey).toBe('sk-or-v1-abc123')
+    expect(useSettingsStore.getState().provider).toBe('openrouter')
+    expect(useSettingsStore.getState().byokEnabled).toBe(true)
     expect(sessionStorage.getItem('promptflow:apikey')).toBe('sk-or-v1-abc123')
 
     await user.click(screen.getByRole('button', { name: 'Show' }))
     expect(field.type).toBe('text')
   })
 
-  it('tests the key and shows the verified account', async () => {
+  it('detects the provider, lists its models and shows the result', async () => {
     vi.stubGlobal(
       'fetch',
       vi.fn(async () =>
-        Response.json({ data: { label: 'my-key', limit_remaining: 3.5 } }),
+        Response.json({
+          data: [{ id: 'claude-a' }, { id: 'claude-b' }],
+        }),
       ),
     )
-    useSettingsStore.setState({ byokEnabled: true, apiKey: 'sk-or-v1-abc' })
+    useSettingsStore.getState().setApiKey('sk-ant-abc')
     const user = userEvent.setup()
     render(<SettingsModal />)
 
-    await user.click(screen.getByRole('button', { name: 'Test key' }))
+    await user.click(
+      screen.getByRole('button', { name: 'Connect & list models' }),
+    )
     expect(await screen.findByRole('status')).toHaveProperty(
       'textContent',
-      '✔ Key verified · my-key · $3.50 left',
+      '✔ Key verified · Anthropic · 2 models',
     )
   })
 
