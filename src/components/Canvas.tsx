@@ -24,6 +24,7 @@ import EmptyState from './run/EmptyState'
 import RunLog from './run/RunLog'
 import NodeConfigPanel from './panels/NodeConfigPanel'
 import { useEditShortcuts } from './useEditShortcuts'
+import { useRevealSelected } from './useRevealSelected'
 
 const nodeTypes = {
   input: InputNode,
@@ -49,6 +50,7 @@ export default function Canvas() {
 
   const containerRef = useRef<HTMLDivElement>(null)
   useEditShortcuts()
+  useRevealSelected(containerRef)
 
   // New nodes chain onto the single selected node (and connect to it when
   // allowed); otherwise they appear at the centre of the visible canvas.
