@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { CloseIcon } from './Icon'
+import { useExitAnimation } from './useExitAnimation'
 
 interface ModalProps {
   title: string
@@ -25,6 +26,7 @@ export default function Modal({
 }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
+  const { closing, requestClose } = useExitAnimation(onClose)
 
   useEffect(() => {
     const dialog = ref.current
@@ -36,14 +38,21 @@ export default function Modal({
       ref={ref}
       aria-labelledby={titleId}
       onClose={onClose}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose()
+      // Escape: play the exit animation instead of vanishing.
+      onCancel={(e) => {
+        e.preventDefault()
+        requestClose()
       }}
-      className="m-auto w-full bg-transparent p-4 text-charcoal-50 backdrop:animate-fade-in backdrop:bg-black/80 backdrop:backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) requestClose()
+      }}
+      className={`m-auto w-full bg-transparent p-4 text-charcoal-50 backdrop:bg-black/80 backdrop:backdrop-blur-sm ${
+        closing ? 'backdrop:animate-fade-out' : 'backdrop:animate-fade-in'
+      }`}
       style={{ maxWidth: 'none' }}
     >
       <div
-        className={`animate-pop-in mx-auto flex max-h-[80vh] w-full flex-col overflow-hidden rounded-2xl border border-charcoal-700 bg-charcoal-900 shadow-2xl ${widthClass}`}
+        className={`${closing ? 'animate-pop-out' : 'animate-pop-in'} mx-auto flex max-h-[80vh] w-full flex-col overflow-hidden rounded-2xl border border-charcoal-700 bg-charcoal-900 shadow-2xl ${widthClass}`}
       >
         <header className="flex items-center justify-between border-b border-charcoal-800 px-5 py-4">
           <div>
@@ -56,7 +65,7 @@ export default function Modal({
           </div>
           <button
             type="button"
-            onClick={onClose}
+            onClick={requestClose}
             className="rounded p-1 text-charcoal-400 transition-colors hover:bg-charcoal-800 hover:text-charcoal-200"
             aria-label="Close"
           >

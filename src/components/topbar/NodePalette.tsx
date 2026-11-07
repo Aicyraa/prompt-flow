@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react'
 import type { NodeType } from '../../types/flow'
 import { Icon } from '../ui/Icon'
 import NodeIcon from '../ui/NodeIcon'
+import { useExitAnimation } from '../ui/useExitAnimation'
 
 const ITEMS: { type: NodeType; label: string; hint: string }[] = [
   { type: 'input', label: 'Input', hint: 'Raw text to start a chain' },
@@ -26,9 +27,10 @@ export default function NodePalette({
   const buttonRef = useRef<HTMLButtonElement>(null)
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([])
   const menuId = useId()
+  const { closing, requestClose } = useExitAnimation(() => setOpen(false), 110)
 
   const close = (returnFocus = true) => {
-    setOpen(false)
+    requestClose()
     if (returnFocus) buttonRef.current?.focus()
   }
 
@@ -97,7 +99,9 @@ export default function NodePalette({
           role="menu"
           aria-label="Add a node"
           onKeyDown={onMenuKeyDown}
-          className="absolute top-full left-0 z-30 mt-2 flex flex-col items-start gap-1.5"
+          className={`absolute top-full left-0 z-30 mt-2 flex flex-col items-start gap-1.5 ${
+            closing ? 'animate-fade-out' : ''
+          }`}
         >
           {ITEMS.map(({ type, label, hint }, i) => (
             <button

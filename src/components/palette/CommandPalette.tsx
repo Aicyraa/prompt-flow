@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { NodeType } from '../../types/flow'
 import { useSettingsStore } from '../../store/settingsStore'
 import { Icon } from '../ui/Icon'
+import { useExitAnimation } from '../ui/useExitAnimation'
 import { filterCommands } from './commands'
 import { useCommands } from './useCommands'
 
@@ -13,6 +14,8 @@ export default function CommandPalette({
 }) {
   const close = useSettingsStore((s) => s.closePalette)
   const commands = useCommands(onAdd)
+  // Esc and clicking outside fade out; running a command closes at once.
+  const { closing, requestClose } = useExitAnimation(close)
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const dialogRef = useRef<HTMLDialogElement>(null)
@@ -53,13 +56,21 @@ export default function CommandPalette({
       ref={dialogRef}
       aria-label="Command palette"
       onClose={close}
-      onClick={(e) => {
-        if (e.target === e.currentTarget) close()
+      onCancel={(e) => {
+        e.preventDefault()
+        requestClose()
       }}
-      className="m-0 mx-auto mt-[12vh] w-full max-w-xl bg-transparent p-4 text-charcoal-50 backdrop:animate-fade-in backdrop:bg-black/60 backdrop:backdrop-blur-sm"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) requestClose()
+      }}
+      className={`m-0 mx-auto mt-[12vh] w-full max-w-xl bg-transparent p-4 text-charcoal-50 backdrop:bg-black/60 backdrop:backdrop-blur-sm ${
+        closing ? 'backdrop:animate-fade-out' : 'backdrop:animate-fade-in'
+      }`}
       style={{ maxWidth: '36rem' }}
     >
-      <div className="animate-pop-in overflow-hidden rounded-2xl border border-charcoal-700 bg-charcoal-900 shadow-2xl">
+      <div
+        className={`${closing ? 'animate-pop-out' : 'animate-pop-in'} overflow-hidden rounded-2xl border border-charcoal-700 bg-charcoal-900 shadow-2xl`}
+      >
         <div className="flex items-center gap-2.5 border-b border-charcoal-800 px-4">
           <Icon name="search" className="h-4 w-4 shrink-0 text-charcoal-400" />
           <input
@@ -93,7 +104,7 @@ export default function CommandPalette({
             placeholder="Type a command or a node name…"
             autoComplete="off"
             spellCheck={false}
-            className="h-12 w-full bg-transparent text-sm text-charcoal-50 outline-none placeholder:text-charcoal-500"
+            className="h-12 w-full bg-transparent text-sm text-charcoal-50 outline-none placeholder:text-charcoal-400"
           />
           <kbd className="hidden rounded border border-charcoal-700 px-1.5 py-0.5 text-[10px] text-charcoal-400 sm:block">
             Esc
@@ -117,7 +128,7 @@ export default function CommandPalette({
             return (
               <li key={command.id} role="presentation">
                 {newGroup && (
-                  <p className="px-2.5 pt-2 pb-1 text-[10px] font-semibold tracking-wider text-charcoal-500 uppercase">
+                  <p className="px-2.5 pt-2 pb-1 text-[10px] font-semibold tracking-wider text-charcoal-400 uppercase">
                     {command.group}
                   </p>
                 )}
@@ -137,7 +148,7 @@ export default function CommandPalette({
                     {command.title}
                   </span>
                   {query && (
-                    <span className="shrink-0 text-[10px] text-charcoal-500">
+                    <span className="shrink-0 text-[10px] text-charcoal-400">
                       {command.group}
                     </span>
                   )}
