@@ -6,7 +6,10 @@ const edge = (source: string, target: string) => ({ source, target })
 describe('topologicalSort', () => {
   it('orders nodes so dependencies come first', () => {
     const ids = ['llm', 'input', 'output']
-    const order = topologicalSort(ids, [edge('input', 'llm'), edge('llm', 'output')])
+    const order = topologicalSort(ids, [
+      edge('input', 'llm'),
+      edge('llm', 'output'),
+    ])
     expect(order.indexOf('input')).toBeLessThan(order.indexOf('llm'))
     expect(order.indexOf('llm')).toBeLessThan(order.indexOf('output'))
   })
@@ -30,7 +33,10 @@ describe('topologicalSort', () => {
   })
 
   it('ignores edges that reference missing nodes', () => {
-    const order = topologicalSort(['a'], [edge('ghost', 'a'), edge('a', 'ghost')])
+    const order = topologicalSort(
+      ['a'],
+      [edge('ghost', 'a'), edge('a', 'ghost')],
+    )
     expect(order).toEqual(['a'])
   })
 

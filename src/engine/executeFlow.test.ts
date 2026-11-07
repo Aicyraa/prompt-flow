@@ -1,14 +1,19 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { GenerateOptions } from '../lib/openrouter'
-import {
-  applyTemplate,
-  executeFlow,
-  getUpstreamNodeIds,
-} from './executeFlow'
+import { applyTemplate, executeFlow, getUpstreamNodeIds } from './executeFlow'
 import type { FlowEdge, FlowNode, NodeData, NodeType } from '../types/flow'
 
-function node(id: string, type: NodeType, data: Partial<NodeData> = {}): FlowNode {
-  return { id, type, position: { x: 0, y: 0 }, data: { type, status: 'idle', ...data } }
+function node(
+  id: string,
+  type: NodeType,
+  data: Partial<NodeData> = {},
+): FlowNode {
+  return {
+    id,
+    type,
+    position: { x: 0, y: 0 },
+    data: { type, ...data } as NodeData,
+  }
 }
 
 function edge(source: string, target: string): FlowEdge {
@@ -53,9 +58,37 @@ describe('applyTemplate', () => {
     expect(result).toBe('{{missing}}')
   })
 
+  it('does not re-expand placeholders found inside substituted values', () => {
+    const result = applyTemplate('{{input}} / {{secret}}', [
+      { label: 'A', value: 'leak: {{secret}}' },
+      { label: 'Secret', value: 'S3CRET' },
+    ])
+    expect(result).toBe('leak: {{secret}}\n\nS3CRET / S3CRET')
+  })
+
   it('handles regex-special characters in labels', () => {
     const result = applyTemplate('{{a.b}}', [{ label: 'a.b', value: 'x' }])
     expect(result).toBe('x')
+  })
+})
+
+describe('executeFlow cycles', () => {
+  it('refuses to run a cyclic graph and flags the cycle nodes', async () => {
+    const nodes = [node('a', 'prompt'), node('b', 'prompt')]
+    const generate = vi.fn(async () => 'x')
+    const { statuses, onStatus } = collect()
+    const result = await executeFlow({
+      nodes,
+      edges: [edge('a', 'b'), edge('b', 'a')],
+      client: null,
+      generate,
+      onStatus,
+    })
+    expect(result.succeeded).toBe(false)
+    expect(generate).not.toHaveBeenCalled()
+    expect(statuses.some((u) => u.nodeId === 'a' && u.status === 'error')).toBe(
+      true,
+    )
   })
 })
 
@@ -65,7 +98,9 @@ describe('executeFlow', () => {
       node('a', 'input', { text: 'Hello' }),
       node('b', 'llm', { model: 'openai/gpt-4o-mini', temperature: 0.3 }),
     ]
-    const generate = vi.fn(async (opts: GenerateOptions) => `Echo: ${opts.prompt}`)
+    const generate = vi.fn(
+      async (opts: GenerateOptions) => `Echo: ${opts.prompt}`,
+    )
     const { statuses, onStatus } = collect()
 
     const result = await executeFlow({
@@ -77,15 +112,23 @@ describe('executeFlow', () => {
     })
 
     expect(result.succeeded).toBe(true)
-    expect(generate).toHaveBeenCalledWith({
-      model: 'openai/gpt-4o-mini',
-      temperature: 0.3,
-      prompt: 'Hello',
-    })
+    expect(generate).toHaveBeenCalledWith(
+      { model: 'openai/gpt-4o-mini', temperature: 0.3, prompt: 'Hello' },
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
+    )
     expect(statuses).toContainEqual({ nodeId: 'a', status: 'running' })
-    expect(statuses).toContainEqual({ nodeId: 'a', status: 'done', output: 'Hello' })
+    expect(statuses).toContainEqual({
+      nodeId: 'a',
+      status: 'done',
+      output: 'Hello',
+    })
     expect(statuses).toContainEqual({ nodeId: 'b', status: 'running' })
-    expect(statuses).toContainEqual({ nodeId: 'b', status: 'done', output: 'Echo: Hello' })
+    expect(statuses).toContainEqual({
+      nodeId: 'b',
+      status: 'done',
+      output: 'Echo: Hello',
+      model: 'openai/gpt-4o-mini',
+    })
   })
 
   it('resolves a prompt template before sending to the llm', async () => {
@@ -97,45 +140,82 @@ describe('executeFlow', () => {
     const generate = vi.fn(async (_: GenerateOptions) => 'response')
     const { onStatus } = collect()
 
-    await executeFlow({ nodes, edges: [edge('a', 'b'), edge('b', 'c')], client: null, generate, onStatus })
+    await executeFlow({
+      nodes,
+      edges: [edge('a', 'b'), edge('b', 'c')],
+      client: null,
+      generate,
+      onStatus,
+    })
 
-    expect(generate).toHaveBeenCalledWith(expect.objectContaining({ prompt: 'Tell me about cats' }))
+    expect(generate).toHaveBeenCalledWith(
+      expect.objectContaining({ prompt: 'Tell me about cats' }),
+      expect.anything(),
+    )
   })
 
   it('passes the final value to an output node', async () => {
     const nodes = [node('a', 'input', { text: 'Hi' }), node('b', 'output')]
     const { statuses, onStatus } = collect()
 
-    const result = await executeFlow({ nodes, edges: [edge('a', 'b')], client: null, onStatus })
+    const result = await executeFlow({
+      nodes,
+      edges: [edge('a', 'b')],
+      client: null,
+      onStatus,
+    })
 
     expect(result.succeeded).toBe(true)
-    expect(statuses).toContainEqual({ nodeId: 'b', status: 'done', output: 'Hi' })
+    expect(statuses).toContainEqual({
+      nodeId: 'b',
+      status: 'done',
+      output: 'Hi',
+    })
   })
 
   it('fails an llm node that has no upstream input', async () => {
     const nodes = [node('a', 'llm', { model: 'm' })]
     const { statuses, onStatus } = collect()
 
-    const result = await executeFlow({ nodes, edges: [], client: null, onStatus })
+    const result = await executeFlow({
+      nodes,
+      edges: [],
+      client: null,
+      onStatus,
+    })
 
     expect(result.succeeded).toBe(false)
     expect(result.failedNodeId).toBe('a')
     expect(statuses).toContainEqual(
-      expect.objectContaining({ nodeId: 'a', status: 'error', error: expect.stringContaining('no incoming prompt') }),
+      expect.objectContaining({
+        nodeId: 'a',
+        status: 'error',
+        error: expect.stringContaining('no incoming prompt'),
+      }),
     )
   })
 
   it('fails an llm node when no client is available', async () => {
     const nodes = [node('a', 'input', { text: 'x' }), node('b', 'llm')]
     const updates: { nodeId: string; status: string; error?: string }[] = []
-    const onStatus = (u: { nodeId: string; status: string; error?: string }) => updates.push(u)
+    const onStatus = (u: { nodeId: string; status: string; error?: string }) =>
+      updates.push(u)
 
-    const result = await executeFlow({ nodes, edges: [edge('a', 'b')], client: null, onStatus })
+    const result = await executeFlow({
+      nodes,
+      edges: [edge('a', 'b')],
+      client: null,
+      onStatus,
+    })
 
     expect(result.succeeded).toBe(false)
     expect(result.failedNodeId).toBe('b')
     expect(updates).toContainEqual(
-      expect.objectContaining({ nodeId: 'b', status: 'error', error: expect.stringContaining('API key') }),
+      expect.objectContaining({
+        nodeId: 'b',
+        status: 'error',
+        error: expect.stringContaining('API key'),
+      }),
     )
   })
 
@@ -170,7 +250,12 @@ describe('executeFlow', () => {
     const nodes = [node('a', 'input', { text: '' }), node('b', 'output')]
     const { statuses, onStatus } = collect()
 
-    const result = await executeFlow({ nodes, edges: [edge('a', 'b')], client: null, onStatus })
+    const result = await executeFlow({
+      nodes,
+      edges: [edge('a', 'b')],
+      client: null,
+      onStatus,
+    })
 
     expect(result.succeeded).toBe(true)
     expect(statuses).toContainEqual({ nodeId: 'a', status: 'done', output: '' })
