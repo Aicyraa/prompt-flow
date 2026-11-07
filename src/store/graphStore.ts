@@ -93,6 +93,8 @@ interface GraphStore extends FlowState {
   pasteClipboard: () => number
   /** Copy and paste the selection in one step. */
   duplicateSelection: () => number
+  /** Move nodes to new positions as one undo step (used by Tidy). */
+  applyPositions: (positions: Record<string, XYPosition>) => void
 }
 
 /**
@@ -349,6 +351,14 @@ export const useGraphStore = create<GraphStore>()(
           }))
           return pasted.length
         },
+
+        applyPositions: (positions) =>
+          set((state) => ({
+            ...record(state),
+            nodes: state.nodes.map((n) =>
+              positions[n.id] ? { ...n, position: positions[n.id] } : n,
+            ),
+          })),
 
         duplicateSelection: () => {
           // Duplicating must not replace what the user copied on purpose.

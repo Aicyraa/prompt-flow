@@ -438,3 +438,30 @@ describe('graphStore copy / paste / duplicate', () => {
     expect(s().nodes).toHaveLength(2)
   })
 })
+
+describe('graphStore applyPositions', () => {
+  it('moves nodes in one undoable step', () => {
+    useGraphStore.setState({
+      nodes: [],
+      edges: [],
+      past: [],
+      future: [],
+      clipboard: null,
+    })
+    const a = useGraphStore.getState().addNode('input', { x: 0, y: 0 })
+    const b = useGraphStore.getState().addNode('llm', { x: 10, y: 10 })
+    const before = useGraphStore.getState().past.length
+    useGraphStore.getState().applyPositions({
+      [a.id]: { x: 100, y: 200 },
+      [b.id]: { x: 300, y: 400 },
+    })
+    expect(useGraphStore.getState().past.length).toBe(before + 1)
+    expect(useGraphStore.getState().nodes[0].position).toEqual({
+      x: 100,
+      y: 200,
+    })
+    useGraphStore.getState().undo()
+    expect(useGraphStore.getState().nodes[0].position).toEqual({ x: 0, y: 0 })
+    expect(useGraphStore.getState().nodes[1].position).toEqual({ x: 10, y: 10 })
+  })
+})
