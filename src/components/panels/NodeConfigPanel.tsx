@@ -387,9 +387,6 @@ export default function NodeConfigPanel() {
               value={data.fontSize}
               onChange={(fontSize) => updateNodeData(node.id, { fontSize })}
             />
-            <p className="mt-1 text-[11px] text-charcoal-400">
-              Default follows Settings → Appearance.
-            </p>
           </div>
           {data.type === 'input' && (
             <Field label="Text" hint="Raw text fed into the chain.">
