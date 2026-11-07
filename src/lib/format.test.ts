@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatRunSummary, formatUsage } from './format'
+import { formatAgo, formatRunSummary, formatUsage } from './format'
 
 describe('formatUsage', () => {
   it('joins tokens, cost and duration', () => {
@@ -56,5 +56,23 @@ describe('formatRunSummary', () => {
         completionTokens: 0,
       }),
     ).toBe('1 step · 4.2s')
+  })
+})
+
+describe('formatAgo', () => {
+  const now = Date.UTC(2026, 10, 7, 12, 0, 0)
+  const ago = (ms: number) => formatAgo(now - ms, now)
+
+  it('speaks in human units', () => {
+    expect(ago(10_000)).toBe('just now')
+    expect(ago(5 * 60_000)).toBe('5 min ago')
+    expect(ago(3 * 3_600_000)).toBe('3 h ago')
+    expect(ago(26 * 3_600_000)).toBe('1 day ago')
+    expect(ago(3 * 86_400_000)).toBe('3 days ago')
+  })
+
+  it('falls back to a date after a week, and never goes negative', () => {
+    expect(ago(30 * 86_400_000)).toMatch(/\d/)
+    expect(formatAgo(now + 5000, now)).toBe('just now')
   })
 })
