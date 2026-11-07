@@ -8,7 +8,6 @@ import { Icon, type IconName } from '../ui/Icon'
 import NodePalette from './NodePalette'
 import { useFlowFile } from './useFlowFile'
 import { useShortcuts } from './useShortcuts'
-import { useDraggable } from './useDraggable'
 
 const iconButton =
   'flex h-8 w-8 items-center justify-center rounded-md text-charcoal-300 transition-[color,background-color,transform] active:scale-90 hover:bg-charcoal-800 hover:text-charcoal-50'
@@ -42,9 +41,6 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
   const markGuideSeen = useSettingsStore((s) => s.markGuideSeen)
   const openSettings = useSettingsStore((s) => s.openSettings)
   const openHistory = useSettingsStore((s) => s.openHistory)
-  const collapsed = useSettingsStore((s) => s.toolbarCollapsed)
-  const setCollapsed = useSettingsStore((s) => s.setToolbarCollapsed)
-  const { ref, style, gripProps } = useDraggable()
   const runFlow = useRunAction()
   const { exportFlow, importFile } = useFlowFile()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -65,65 +61,34 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
   return (
     <>
       <header
-        ref={ref}
-        style={style}
         aria-label="Toolbar"
-        className="fixed z-20 flex max-w-[calc(100vw-1rem)] flex-wrap items-center gap-2 rounded-xl border border-charcoal-700 bg-charcoal-900/95 px-2 py-1.5 shadow-2xl backdrop-blur"
+        className="relative z-20 flex h-12 shrink-0 items-center gap-2 border-b border-charcoal-800 bg-charcoal-900 px-3"
       >
-        <button
-          type="button"
-          {...gripProps}
-          title="Drag to move (double-click to reset)"
-          aria-label="Move toolbar"
-          className="flex h-8 w-5 cursor-grab touch-none items-center justify-center rounded text-charcoal-500 hover:text-charcoal-200 active:cursor-grabbing"
-        >
-          <Icon name="grip" />
-        </button>
+        <NodePalette onAdd={onAdd} />
 
-        {collapsed ? (
+        <div className="ml-auto flex items-center">
           <IconButton
-            icon="settings"
-            label="Show toolbar"
-            onClick={() => setCollapsed(false)}
+            icon="download"
+            label="Export flow as JSON"
+            onClick={exportFlow}
           />
-        ) : (
-          <div className="flex flex-wrap items-center gap-2 animate-fade-in">
-            <NodePalette onAdd={onAdd} />
-
-            <div className="flex items-center">
-              <IconButton
-                icon="download"
-                label="Export flow as JSON"
-                onClick={exportFlow}
-              />
-              <IconButton
-                icon="upload"
-                label="Import flow from JSON"
-                onClick={() => fileInputRef.current?.click()}
-              />
-              <IconButton
-                icon="history"
-                label="Run history"
-                onClick={openHistory}
-              />
-              <IconButton
-                icon="settings"
-                label="Settings"
-                onClick={openSettings}
-              />
-              <IconButton
-                icon="help"
-                label="How PromptFlow works (?)"
-                onClick={openGuide}
-              />
-              <IconButton
-                icon="collapse"
-                label="Collapse toolbar"
-                onClick={() => setCollapsed(true)}
-              />
-            </div>
-          </div>
-        )}
+          <IconButton
+            icon="upload"
+            label="Import flow from JSON"
+            onClick={() => fileInputRef.current?.click()}
+          />
+          <IconButton
+            icon="history"
+            label="Run history"
+            onClick={openHistory}
+          />
+          <IconButton icon="settings" label="Settings" onClick={openSettings} />
+          <IconButton
+            icon="help"
+            label="How PromptFlow works (?)"
+            onClick={openGuide}
+          />
+        </div>
       </header>
 
       <input

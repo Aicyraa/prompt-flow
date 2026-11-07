@@ -55,7 +55,7 @@ export default function RunLog() {
   if (entries.length === 0 && !isRunning) return null
 
   return (
-    <div className="animate-fade-up absolute inset-x-2 top-24 z-10 md:inset-x-auto md:top-auto md:bottom-4 md:left-16 md:w-80">
+    <div className="animate-fade-up absolute inset-x-2 top-2 z-10 md:inset-x-auto md:top-auto md:bottom-4 md:left-16 md:w-80">
       {/* Announces progress to assistive tech without moving focus. */}
       <div role="status" aria-live="polite" className="sr-only">
         {summary}

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen } from '@testing-library/react'
+import { cleanup, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ReactFlowProvider } from '@xyflow/react'
 import { useRunStore } from '../../store/runStore'
@@ -39,13 +39,6 @@ describe('TopBar', () => {
     expect(run).toHaveBeenCalledTimes(1)
   })
 
-  it('adds nodes from the palette', async () => {
-    const user = userEvent.setup()
-    const onAdd = setup()
-    await user.click(screen.getByRole('button', { name: 'Add Agent node' }))
-    expect(onAdd).toHaveBeenCalledWith('llm')
-  })
-
   it('opens the guide on a first visit only, and remembers it was seen', async () => {
     const user = userEvent.setup()
     useSettingsStore.setState({ hasSeenGuide: false })
@@ -74,40 +67,72 @@ describe('TopBar', () => {
   })
 })
 
-describe('TopBar floating behaviour', () => {
-  it('has no product-name heading and collapses/expands', async () => {
-    const user = userEvent.setup()
-    useSettingsStore.setState({ toolbarCollapsed: false, toolbarPos: null })
+describe('TopBar layout', () => {
+  it('is a fixed bar with no product name, grip or collapse control', () => {
     setup()
+    expect(screen.getByRole('banner', { name: 'Toolbar' })).toBeTruthy()
     expect(screen.queryByText('PromptFlow')).toBeNull()
+    expect(screen.queryByRole('button', { name: /Move toolbar/ })).toBeNull()
+    expect(
+      screen.queryByRole('button', { name: /Collapse toolbar/ }),
+    ).toBeNull()
     expect(screen.queryByRole('button', { name: /^Run$|API key/ })).toBeNull()
-    await user.click(screen.getByRole('button', { name: 'Collapse toolbar' }))
-    expect(screen.queryByRole('button', { name: 'Add Agent node' })).toBeNull()
-    await user.click(screen.getByRole('button', { name: 'Show toolbar' }))
-    expect(screen.getByRole('button', { name: 'Add Agent node' })).toBeTruthy()
   })
+})
 
-  it('resets the position on grip double-click', async () => {
+describe('Add node dropdown', () => {
+  it('lists the four node types only while open', async () => {
     const user = userEvent.setup()
-    useSettingsStore.setState({
-      toolbarCollapsed: false,
-      toolbarPos: { x: 10, y: 10 },
-    })
     setup()
-    await user.dblClick(screen.getByRole('button', { name: 'Move toolbar' }))
-    expect(useSettingsStore.getState().toolbarPos).toBeNull()
+    expect(screen.queryByRole('menu')).toBeNull()
+    const trigger = screen.getByRole('button', { name: /Add node/ })
+    expect(trigger.getAttribute('aria-expanded')).toBe('false')
+    await user.click(trigger)
+    expect(trigger.getAttribute('aria-expanded')).toBe('true')
+    const items = within(screen.getByRole('menu')).getAllByRole('menuitem')
+    expect(items.map((i) => i.textContent)).toEqual([
+      expect.stringContaining('Input'),
+      expect.stringContaining('Prompt'),
+      expect.stringContaining('Agent'),
+      expect.stringContaining('Output'),
+    ])
   })
 
-  it('moves with the grip and keeps the position', () => {
-    useSettingsStore.setState({ toolbarCollapsed: false, toolbarPos: null })
+  it('adds the chosen node and closes', async () => {
+    const user = userEvent.setup()
+    const onAdd = setup()
+    await user.click(screen.getByRole('button', { name: /Add node/ }))
+    await user.click(screen.getByRole('menuitem', { name: /Agent/ }))
+    expect(onAdd).toHaveBeenCalledWith('llm')
+    expect(screen.queryByRole('menu')).toBeNull()
+  })
+
+  it('moves with the arrow keys, and Escape closes and refocuses the button', async () => {
+    const user = userEvent.setup()
     setup()
-    const grip = screen.getByRole('button', { name: 'Move toolbar' })
-    fireEvent.pointerDown(grip, { clientX: 100, clientY: 20, button: 0 })
-    fireEvent.pointerMove(grip, { clientX: 140, clientY: 80 })
-    fireEvent.pointerUp(grip)
-    const pos = useSettingsStore.getState().toolbarPos
-    expect(pos).not.toBeNull()
-    expect(pos!.x).toBeGreaterThanOrEqual(4)
-    expect(pos!.y).toBeGreaterThanOrEqual(4)
+    const trigger = screen.getByRole('button', { name: /Add node/ })
+    await user.click(trigger)
+    expect(document.activeElement).toBe(
+      screen.getByRole('menuitem', { name: /Input/ }),
+    )
+    await user.keyboard('{ArrowDown}')
+    expect(document.activeElement).toBe(
+      screen.getByRole('menuitem', { name: /Prompt/ }),
+    )
+    await user.keyboard('{ArrowUp}{ArrowUp}')
+    expect(document.activeElement).toBe(
+      screen.getByRole('menuitem', { name: /Output/ }),
+    )
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('menu')).toBeNull()
+    expect(document.activeElement).toBe(trigger)
+  })
+
+  it('closes when clicking elsewhere', async () => {
+    const user = userEvent.setup()
+    setup()
+    await user.click(screen.getByRole('button', { name: /Add node/ }))
+    await user.click(document.body)
+    expect(screen.queryByRole('menu')).toBeNull()
   })
 })

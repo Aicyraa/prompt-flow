@@ -140,35 +140,40 @@ export default function Canvas() {
   }, [selectedEdgeId, onEdgesChange])
 
   return (
-    <div ref={containerRef} className="relative h-full w-full overflow-hidden">
+    <div className="flex h-full w-full flex-col overflow-hidden">
       <TopBar onAdd={addNode} />
-      <NodeConfigPanel />
-      <EmptyState />
-      <RunLog />
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={handleConnect}
-        isValidConnection={isValidConnection}
-        nodeTypes={nodeTypes}
-        edgeTypes={edgeTypes}
-        defaultEdgeOptions={defaultEdgeOptions}
-        fitView
-        deleteKeyCode={['Backspace', 'Delete']}
-        minZoom={0.2}
-        proOptions={{ hideAttribution: true }}
-        className="h-full w-full"
+      <div
+        ref={containerRef}
+        className="relative min-h-0 flex-1 overflow-hidden"
       >
-        <Background
-          variant={BackgroundVariant.Dots}
-          gap={22}
-          size={1.25}
-          color="#443B30"
-        />
-        <Controls />
-      </ReactFlow>
+        <NodeConfigPanel />
+        <EmptyState />
+        <RunLog />
+        <ReactFlow
+          nodes={nodes}
+          edges={edges}
+          onNodesChange={onNodesChange}
+          onEdgesChange={onEdgesChange}
+          onConnect={handleConnect}
+          isValidConnection={isValidConnection}
+          nodeTypes={nodeTypes}
+          edgeTypes={edgeTypes}
+          defaultEdgeOptions={defaultEdgeOptions}
+          fitView
+          deleteKeyCode={['Backspace', 'Delete']}
+          minZoom={0.2}
+          proOptions={{ hideAttribution: true }}
+          className="h-full w-full"
+        >
+          <Background
+            variant={BackgroundVariant.Dots}
+            gap={22}
+            size={1.25}
+            color="#443B30"
+          />
+          <Controls />
+        </ReactFlow>
+      </div>
     </div>
   )
 }

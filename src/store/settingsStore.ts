@@ -46,11 +46,6 @@ function writeKey(key: string, persistence: KeyPersistence) {
   }
 }
 
-export interface ToolbarPos {
-  x: number
-  y: number
-}
-
 interface SettingsStore {
   byokEnabled: boolean
   apiKey: string
@@ -69,12 +64,6 @@ interface SettingsStore {
   historyOpen: boolean
   favouriteModels: string[]
   recentModels: string[]
-  /** Floating toolbar: top-left in px, or null for the default centred spot. */
-  toolbarPos: ToolbarPos | null
-  toolbarCollapsed: boolean
-
-  setToolbarPos: (pos: ToolbarPos | null) => void
-  setToolbarCollapsed: (collapsed: boolean) => void
   setByokEnabled: (enabled: boolean) => void
   setApiKey: (key: string) => void
   setKeyPersistence: (persistence: KeyPersistence) => void
@@ -110,11 +99,6 @@ export const useSettingsStore = create<SettingsStore>()(
       historyOpen: false,
       favouriteModels: [],
       recentModels: [],
-      toolbarPos: null,
-      toolbarCollapsed: false,
-
-      setToolbarPos: (toolbarPos) => set({ toolbarPos }),
-      setToolbarCollapsed: (toolbarCollapsed) => set({ toolbarCollapsed }),
       setByokEnabled: (byokEnabled) => set({ byokEnabled }),
 
       setApiKey: (key) => {
@@ -187,8 +171,6 @@ export const useSettingsStore = create<SettingsStore>()(
         saveHistory: s.saveHistory,
         favouriteModels: s.favouriteModels,
         recentModels: s.recentModels,
-        toolbarPos: s.toolbarPos,
-        toolbarCollapsed: s.toolbarCollapsed,
       }),
     },
   ),
