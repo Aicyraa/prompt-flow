@@ -56,7 +56,7 @@ export default function FlowsModal() {
           onClick={() =>
             guardLooseCanvas(() => newFlow(), 'Started a new flow')
           }
-          className="w-full rounded-lg border border-violet-400/40 px-3 py-1.5 text-xs font-semibold text-violet-300 transition-colors hover:bg-violet-400/10"
+          className="w-full rounded-lg border border-violet-400/40 px-3 py-1.5 text-xs font-semibold text-violet-300 transition-colors hover:bg-violet-500/10"
         >
           New empty flow
         </button>
@@ -82,7 +82,7 @@ export default function FlowsModal() {
             />
             <button
               type="submit"
-              className="shrink-0 rounded-md bg-violet-500 px-3 text-xs font-semibold text-white transition-colors hover:bg-violet-400"
+              className="shrink-0 rounded-md bg-violet-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-violet-500"
             >
               Save
             </button>

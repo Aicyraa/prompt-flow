@@ -28,7 +28,7 @@ export default function CostConfirmModal() {
           <button
             type="button"
             onClick={() => void runFlow({ ...options, skipCostCheck: true })}
-            className="flex-1 rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-400"
+            className="flex-1 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-violet-500"
           >
             Run anyway
           </button>

@@ -21,7 +21,7 @@ export function Section({
         <h3 className="text-[11px] font-semibold tracking-wider text-charcoal-300 uppercase">
           {title}
         </h3>
-        {hint && <p className="mt-0.5 text-[11px] text-charcoal-500">{hint}</p>}
+        {hint && <p className="mt-0.5 text-[11px] text-charcoal-400">{hint}</p>}
       </div>
       {children}
     </section>

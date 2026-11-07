@@ -137,15 +137,13 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
           <button
             type="button"
             onClick={openPalette}
+            // The shortcut lives in the tooltip: visible text must match the accessible name.
             title="Search commands (Ctrl/⌘+K)"
             aria-label="Search commands"
             className="mr-1 flex h-8 items-center gap-2 rounded-md border border-charcoal-700 px-2.5 text-xs text-charcoal-400 transition-colors hover:border-charcoal-500 hover:text-charcoal-200"
           >
             <Icon name="search" className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Search</span>
-            <kbd className="hidden rounded bg-charcoal-800 px-1 text-[10px] sm:inline">
-              Ctrl K
-            </kbd>
           </button>
           <IconButton
             icon="map"

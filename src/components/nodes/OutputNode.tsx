@@ -69,7 +69,7 @@ export default function OutputNode({
             type="button"
             onClick={() => void runFlow()}
             title="Run flow (Ctrl/⌘+Enter)"
-            className="nodrag flex items-center gap-1 rounded-md bg-violet-500 px-2 py-0.5 text-[11px] font-semibold text-white transition-[background-color,transform] hover:bg-violet-400 active:scale-95"
+            className="nodrag flex items-center gap-1 rounded-md bg-violet-600 px-2 py-0.5 text-[11px] font-semibold text-white transition-[background-color,transform] hover:bg-violet-500 active:scale-95"
           >
             <Icon name="play" className="h-3 w-3" />
             Run

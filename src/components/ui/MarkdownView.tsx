@@ -136,7 +136,7 @@ const components: Components = {
     </a>
   ),
   blockquote: ({ children }) => (
-    <blockquote className="my-3 rounded-r-md border-l-2 border-violet-500/60 bg-violet-500/5 py-1 pr-3 pl-3 text-charcoal-300 [&>p]:my-1">
+    <blockquote className="my-3 rounded-r-md border-l-2 border-violet-500/60 bg-violet-600/5 py-1 pr-3 pl-3 text-charcoal-300 [&>p]:my-1">
       {children}
     </blockquote>
   ),

@@ -77,7 +77,7 @@ export default function NodeShell({
             handleClassName="react-flow__resize-handle"
           />
         )}
-        <header className="flex items-center gap-2 border-b border-charcoal-800 py-2 pr-2 pl-3">
+        <div className="flex items-center gap-2 border-b border-charcoal-800 py-2 pr-2 pl-3">
           <NodeIcon type={type} />
           <span className="flex-1 truncate text-xs font-semibold tracking-wide text-charcoal-100 uppercase">
             {label}
@@ -102,7 +102,7 @@ export default function NodeShell({
           >
             <CloseIcon className="h-3.5 w-3.5" />
           </button>
-        </header>
+        </div>
 
         <div
           className={`p-3 ${resizable ? 'flex min-h-0 flex-1 flex-col' : 'min-w-0'}`}
@@ -144,7 +144,6 @@ export default function NodeShell({
           <Handle
             type="target"
             position={Position.Left}
-            aria-label="Input connection"
             className="!-left-[5px]"
           />
         )}
@@ -152,7 +151,6 @@ export default function NodeShell({
           <Handle
             type="source"
             position={Position.Right}
-            aria-label="Output connection"
             className="!-right-[5px]"
           />
         )}

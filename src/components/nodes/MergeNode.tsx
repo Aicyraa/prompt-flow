@@ -52,7 +52,7 @@ export default function MergeNode({
               key={n.id}
               className="flex items-center gap-2 rounded-md bg-charcoal-800/60 px-2 py-1"
             >
-              <span className="w-3 text-charcoal-500">{i + 1}</span>
+              <span className="w-3 text-charcoal-400">{i + 1}</span>
               <span className="truncate">
                 {n.data.label?.trim() || n.data.type}
               </span>

@@ -53,7 +53,7 @@ function VariablesDialog() {
                   ? `Fill in ${missing.map((m) => `{{${m}}}`).join(', ')} first`
                   : 'Run the flow with these values'
               }
-              className="flex-1 rounded-lg bg-violet-500 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-violet-400 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex-1 rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-semibold text-white transition-colors hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-50"
             >
               Run flow
             </button>

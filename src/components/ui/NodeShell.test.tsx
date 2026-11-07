@@ -50,14 +50,19 @@ describe('NodeShell', () => {
     expect(useSettingsStore.getState().settingsOpen).toBe(true)
   })
 
-  it('labels the connection handles', () => {
+  it('has both connection handles, without an invalid aria-label on a bare div', () => {
     setup()
-    expect(
-      document.querySelector('[aria-label="Input connection"]'),
-    ).toBeTruthy()
-    expect(
-      document.querySelector('[aria-label="Output connection"]'),
-    ).toBeTruthy()
+    expect(document.querySelector('.react-flow__handle.target')).toBeTruthy()
+    expect(document.querySelector('.react-flow__handle.source')).toBeTruthy()
+    // aria-label is not allowed on a div with no role (axe: aria-prohibited-attr)
+    for (const handle of document.querySelectorAll('.react-flow__handle')) {
+      expect(handle.getAttribute('aria-label')).toBeNull()
+    }
+  })
+
+  it('does not create banner landmarks inside nodes', () => {
+    setup()
+    expect(document.querySelector('header')).toBeNull()
   })
 
   it('animates in once and pulses only while running', () => {

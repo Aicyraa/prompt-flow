@@ -503,7 +503,7 @@ export default function NodeConfigPanel() {
           onClick={() => void runFlow({ from: node.id })}
           disabled={isRunning}
           title="Re-run this node and everything after it, reusing earlier results"
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-violet-500 px-3 py-2 text-xs font-semibold text-white transition-[background-color,transform] hover:bg-violet-400 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-violet-600 px-3 py-2 text-xs font-semibold text-white transition-[background-color,transform] hover:bg-violet-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
         >
           <Icon name="play" className="h-3 w-3" />
           Run from here
