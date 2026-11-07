@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import type { NodeType } from '../../types/flow'
+import { useGraphStore } from '../../store/graphStore'
 import { useRunStore } from '../../store/runStore'
 import { useSettingsStore } from '../../store/settingsStore'
 import GuideModal from '../panels/GuideModal'
@@ -16,18 +17,21 @@ function IconButton({
   icon,
   label,
   onClick,
+  disabled = false,
 }: {
   icon: IconName
   label: string
   onClick: () => void
+  disabled?: boolean
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       title={label}
       aria-label={label}
-      className={iconButton}
+      className={`${iconButton} disabled:pointer-events-none disabled:opacity-30`}
     >
       <Icon name={icon} />
     </button>
@@ -41,6 +45,10 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
   const markGuideSeen = useSettingsStore((s) => s.markGuideSeen)
   const openSettings = useSettingsStore((s) => s.openSettings)
   const openHistory = useSettingsStore((s) => s.openHistory)
+  const canUndo = useGraphStore((s) => s.past.length > 0)
+  const canRedo = useGraphStore((s) => s.future.length > 0)
+  const undo = useGraphStore((s) => s.undo)
+  const redo = useGraphStore((s) => s.redo)
   const runFlow = useRunAction()
   const { exportFlow, importFile } = useFlowFile()
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -65,6 +73,21 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
         className="relative z-20 flex h-12 shrink-0 items-center gap-2 border-b border-charcoal-800 bg-charcoal-900 px-3"
       >
         <NodePalette onAdd={onAdd} />
+
+        <div className="flex items-center">
+          <IconButton
+            icon="undo"
+            label="Undo (Ctrl/⌘+Z)"
+            onClick={undo}
+            disabled={!canUndo}
+          />
+          <IconButton
+            icon="redo"
+            label="Redo (Ctrl/⌘+Shift+Z)"
+            onClick={redo}
+            disabled={!canRedo}
+          />
+        </div>
 
         <div className="ml-auto flex items-center">
           <IconButton

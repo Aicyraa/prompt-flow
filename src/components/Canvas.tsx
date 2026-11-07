@@ -23,6 +23,7 @@ import TopBar from './topbar/TopBar'
 import EmptyState from './run/EmptyState'
 import RunLog from './run/RunLog'
 import NodeConfigPanel from './panels/NodeConfigPanel'
+import { useEditShortcuts } from './useEditShortcuts'
 
 const nodeTypes = {
   input: InputNode,
@@ -47,6 +48,7 @@ export default function Canvas() {
   const { screenToFlowPosition } = useReactFlow()
 
   const containerRef = useRef<HTMLDivElement>(null)
+  useEditShortcuts()
 
   // New nodes chain onto the single selected node (and connect to it when
   // allowed); otherwise they appear at the centre of the visible canvas.

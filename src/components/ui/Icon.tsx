@@ -30,11 +30,15 @@ export type IconName =
   | 'check'
   | 'history'
   | 'chevron'
+  | 'undo'
+  | 'redo'
   | 'trash'
   | 'plus'
 
 const STROKE: Record<Exclude<IconName, 'play' | 'spinner'>, ReactNode> = {
   chevron: <path d="m5 8 5 5 5-5" />,
+  undo: <path d="M7 5 3.5 8.5 7 12M3.5 8.5H12a4.5 4.5 0 0 1 0 9H8" />,
+  redo: <path d="m13 5 3.5 3.5L13 12M16.5 8.5H8a4.5 4.5 0 0 0 0 9h4" />,
   plus: <path d="M10 4v12M4 10h12" />,
   trash: (
     <>

@@ -307,6 +307,7 @@ export default function NodeConfigPanel() {
   })
   const updateNodeData = useGraphStore((s) => s.updateNodeData)
   const deleteNode = useGraphStore((s) => s.deleteNode)
+  const duplicateSelection = useGraphStore((s) => s.duplicateSelection)
   const clearSelection = useGraphStore((s) => s.clearSelection)
   const isRunning = useRunStore((s) => s.isRunning)
   const status = useRunStore((s) =>
@@ -439,6 +440,15 @@ export default function NodeConfigPanel() {
         >
           <Icon name="play" className="h-3 w-3" />
           Run from here
+        </button>
+        <button
+          type="button"
+          onClick={() => duplicateSelection()}
+          title="Duplicate node (Ctrl/⌘+D)"
+          aria-label="Duplicate node"
+          className="flex items-center rounded-lg border border-charcoal-700 px-2.5 py-2 text-charcoal-200 transition-colors hover:bg-charcoal-800"
+        >
+          <Icon name="copy" className="h-3.5 w-3.5" />
         </button>
         <button
           type="button"
