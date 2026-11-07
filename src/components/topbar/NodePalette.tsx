@@ -11,6 +11,7 @@ const ITEMS: { type: NodeType; label: string; hint: string }[] = [
     hint: 'Template that wraps upstream text',
   },
   { type: 'llm', label: 'Agent', hint: 'Call a model with the prompt' },
+  { type: 'merge', label: 'Merge', hint: 'Join several branches into one' },
   { type: 'output', label: 'Output', hint: 'Show and export the result' },
 ]
 

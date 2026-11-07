@@ -8,6 +8,7 @@ const FALLBACK_SIZE = {
   input: { width: 288, height: 150 },
   prompt: { width: 288, height: 190 },
   llm: { width: 320, height: 210 },
+  merge: { width: 288, height: 190 },
   output: { width: 380, height: 300 },
 } as const
 

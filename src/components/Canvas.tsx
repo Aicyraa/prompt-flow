@@ -19,6 +19,7 @@ import { useSettingsStore } from '../store/settingsStore'
 import InputNode from './nodes/InputNode'
 import PromptNode from './nodes/PromptNode'
 import LLMNode from './nodes/LLMNode'
+import MergeNode from './nodes/MergeNode'
 import OutputNode from './nodes/OutputNode'
 import CurvedEdge from './edges/CurvedEdge'
 import TopBar from './topbar/TopBar'
@@ -37,6 +38,7 @@ const MINIMAP_COLORS: Record<string, string> = {
   input: '#34d399',
   prompt: '#fbbf24',
   llm: '#a78bfa',
+  merge: '#2dd4bf',
   output: '#38bdf8',
 }
 
@@ -44,6 +46,7 @@ const nodeTypes = {
   input: InputNode,
   prompt: PromptNode,
   llm: LLMNode,
+  merge: MergeNode,
   output: OutputNode,
 }
 

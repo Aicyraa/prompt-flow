@@ -82,7 +82,7 @@ describe('TopBar layout', () => {
 })
 
 describe('Add node dropdown', () => {
-  it('lists the four node types only while open', async () => {
+  it('lists the five node types only while open', async () => {
     const user = userEvent.setup()
     setup()
     expect(screen.queryByRole('menu')).toBeNull()
@@ -95,6 +95,7 @@ describe('Add node dropdown', () => {
       expect.stringContaining('Input'),
       expect.stringContaining('Prompt'),
       expect.stringContaining('Agent'),
+      expect.stringContaining('Merge'),
       expect.stringContaining('Output'),
     ])
   })

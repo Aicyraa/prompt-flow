@@ -91,3 +91,35 @@ describe('Agent settings', () => {
     expect(screen.queryByLabelText('Temperature')).toBeNull()
   })
 })
+
+describe('Merge settings', () => {
+  const mergeData = () => {
+    const n = useGraphStore.getState().nodes[0]
+    return n.data as Extract<typeof n.data, { type: 'merge' }>
+  }
+  function setupMerge() {
+    useGraphStore.setState({ nodes: [], edges: [] })
+    useGraphStore.getState().addNode('merge', { x: 0, y: 0 })
+    return render(<NodeConfigPanel />)
+  }
+
+  it('changes the separator and reveals a custom field only for Custom', async () => {
+    const user = userEvent.setup()
+    setupMerge()
+    expect(screen.queryByLabelText('Custom separator')).toBeNull()
+    await user.selectOptions(screen.getByLabelText('Separator'), 'rule')
+    expect(mergeData().separator).toBe('rule')
+    await user.selectOptions(screen.getByLabelText('Separator'), 'custom')
+    await user.type(screen.getByLabelText('Custom separator'), ' | ')
+    expect(mergeData().customSeparator).toBe(' | ')
+  })
+
+  it('toggles names above each branch', async () => {
+    const user = userEvent.setup()
+    setupMerge()
+    await user.click(screen.getByRole('checkbox'))
+    expect(mergeData().labelled).toBe(true)
+    await user.click(screen.getByRole('checkbox'))
+    expect(mergeData().labelled).toBeUndefined()
+  })
+})

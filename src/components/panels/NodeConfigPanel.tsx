@@ -3,7 +3,7 @@ import {
   DEFAULT_TEMPERATURE,
   NODE_LABELS,
 } from '../../lib/nodes'
-import type { LlmData } from '../../types/flow'
+import type { LlmData, MergeSeparator } from '../../types/flow'
 import { useGraphStore } from '../../store/graphStore'
 import { useModelStore } from '../../store/modelStore'
 import { selectNodeRun, useRunStore } from '../../store/runStore'
@@ -13,6 +13,7 @@ import { FOCUS_RINGS } from '../ui/nodeTheme'
 import { CloseIcon, Icon } from '../ui/Icon'
 import { Field, inputClass, Section } from '../ui/fields'
 import { STATUS_DOTS, STATUS_LABELS } from '../ui/nodeTheme'
+import { MERGE_SEPARATORS } from '../../lib/merge'
 import ModelPicker from '../models/ModelPicker'
 import ModelDetails from '../models/ModelDetails'
 import { supportsParam, useModelInfo } from '../models/useModelInfo'
@@ -416,6 +417,72 @@ export default function NodeConfigPanel() {
                 />
               )}
             </Field>
+          )}
+          {data.type === 'merge' && (
+            <>
+              <Field
+                label="Separator"
+                hint="Placed between the branches. Branches are joined in canvas order: top to bottom, then left to right."
+              >
+                {(id) => (
+                  <select
+                    id={id}
+                    value={data.separator ?? 'blank'}
+                    onChange={(e) =>
+                      updateNodeData(node.id, {
+                        separator: e.target.value as MergeSeparator,
+                      })
+                    }
+                    className={`${inputClass} ${focus}`}
+                  >
+                    {MERGE_SEPARATORS.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </Field>
+              {data.separator === 'custom' && (
+                <Field
+                  label="Custom separator"
+                  hint={'Type \\n for a new line.'}
+                >
+                  {(id) => (
+                    <input
+                      id={id}
+                      value={data.customSeparator ?? ''}
+                      onChange={(e) =>
+                        updateNodeData(node.id, {
+                          customSeparator: e.target.value,
+                        })
+                      }
+                      className={`${inputClass} font-mono ${focus}`}
+                    />
+                  )}
+                </Field>
+              )}
+              <label className="flex cursor-pointer items-start gap-2">
+                <input
+                  type="checkbox"
+                  checked={data.labelled ?? false}
+                  onChange={(e) =>
+                    updateNodeData(node.id, {
+                      labelled: e.target.checked || undefined,
+                    })
+                  }
+                  className="mt-0.5 h-4 w-4 accent-teal-400"
+                />
+                <span>
+                  <span className="block text-xs text-charcoal-100">
+                    Put each branch&rsquo;s name above its text
+                  </span>
+                  <span className="block text-[11px] text-charcoal-400">
+                    Useful for comparing answers from different agents.
+                  </span>
+                </span>
+              </label>
+            </>
           )}
           {data.type === 'output' && (
             <p className="text-xs leading-relaxed text-charcoal-400">

@@ -12,6 +12,10 @@ const PATHS: Record<NodeType, ReactNode> = {
   llm: (
     <path d="M10 2.5 11.8 8.2 17.5 10l-5.7 1.8L10 17.5l-1.8-5.7L2.5 10l5.7-1.8L10 2.5Z" />
   ),
+  // two lines converging into one
+  merge: (
+    <path d="M3 5h4c3.5 0 3.5 5 7 5M3 15h4c3.5 0 3.5-5 7-5M14 10h3M15 8l2 2-2 2" />
+  ),
   // arrow leaving a frame
   output: (
     <path d="M8 10h9M13.5 6.5 17 10l-3.5 3.5M8 4H4.5A1.5 1.5 0 0 0 3 5.5v9A1.5 1.5 0 0 0 4.5 16H8" />
@@ -22,6 +26,7 @@ const NODE_ICON_TONE: Record<NodeType, string> = {
   input: 'text-emerald-400',
   prompt: 'text-amber-400',
   llm: 'text-violet-400',
+  merge: 'text-teal-400',
   output: 'text-sky-400',
 }
 

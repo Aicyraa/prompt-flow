@@ -12,11 +12,12 @@ import { useViewActions } from '../useViewActions'
 import { showUndoToast } from '../ui/undoToast'
 import type { Command } from './commands'
 
-const NODE_TYPES: NodeType[] = ['input', 'prompt', 'llm', 'output']
+const NODE_TYPES: NodeType[] = ['input', 'prompt', 'llm', 'merge', 'output']
 const NODE_KEYWORDS: Record<NodeType, string> = {
   input: 'text start source',
   prompt: 'template',
   llm: 'llm model ai',
+  merge: 'join combine branches concat',
   output: 'result end',
 }
 
