@@ -18,14 +18,13 @@ export default function InputNode({
       label={data.label ?? 'Input'}
       selected={selected}
       hasSource
-      width={288}
     >
       <textarea
         value={data.text ?? ''}
         onChange={(e) => updateNodeData(id, { text: e.target.value })}
         placeholder="Type raw text…"
         rows={3}
-        className={`w-full resize-none rounded-md border border-charcoal-700 bg-charcoal-800/70 p-2 font-mono text-sm text-charcoal-50 placeholder-charcoal-400 outline-none ${FOCUS_RINGS.input}`}
+        className={`nodrag nowheel min-h-0 w-full flex-1 resize-none rounded-md border border-charcoal-700 bg-charcoal-800/70 p-2 font-mono text-[1.08em] text-charcoal-50 placeholder-charcoal-400 outline-none ${FOCUS_RINGS.input}`}
       />
     </NodeShell>
   )

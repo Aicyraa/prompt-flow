@@ -1,10 +1,6 @@
 import type { NodeProps } from '@xyflow/react'
 import type { FlowNode, LlmData } from '../../types/flow'
-import {
-  DEFAULT_MODEL,
-  DEFAULT_TEMPERATURE,
-  LLM_NODE_WIDTH,
-} from '../../lib/nodes'
+import { DEFAULT_MODEL, DEFAULT_TEMPERATURE } from '../../lib/nodes'
 import { useGraphStore } from '../../store/graphStore'
 import { selectNodeRun, useRunStore } from '../../store/runStore'
 import NodeShell from '../ui/NodeShell'
@@ -20,6 +16,10 @@ export default function LLMNode({
   selected,
 }: NodeProps<FlowNode & { data: LlmData }>) {
   const updateNodeData = useGraphStore((s) => s.updateNodeData)
+  // Once the user has dragged the node's height, the result fills the space.
+  const sized = useGraphStore(
+    (s) => s.nodes.find((n) => n.id === id)?.height != null,
+  )
   const {
     status,
     output,
@@ -52,7 +52,7 @@ export default function LLMNode({
       selected={selected}
       hasTarget
       hasSource
-      width={LLM_NODE_WIDTH}
+      minHeight={150}
     >
       <label
         htmlFor={`${id}-model`}
@@ -66,29 +66,35 @@ export default function LLMNode({
         onChange={(next) => updateNodeData(id, { model: next })}
         focusClass={FOCUS_RINGS.llm.replace('focus:', 'focus-visible:')}
       />
-      <p className="mt-1.5 text-[11px] text-charcoal-400">
-        {summary.length ? `${summary.join(' · ')} · ` : ''}
-        select the node to edit all settings
+      {/* One line: the full text is in the tooltip when it is cut short. */}
+      <p
+        className="mt-1.5 shrink-0 truncate text-[11px] text-charcoal-400"
+        title={summary.length ? summary.join(' · ') : undefined}
+      >
+        {summary.length
+          ? summary.join(' · ')
+          : 'Select the node for all settings'}
       </p>
 
       {status === 'running' && output && (
         <p
           aria-live="off"
-          className="nodrag mt-3 line-clamp-4 rounded-md border border-charcoal-700 bg-charcoal-800/70 p-2 text-[12px] leading-relaxed whitespace-pre-wrap text-charcoal-200"
+          className="nodrag mt-3 line-clamp-4 rounded-md border border-charcoal-700 bg-charcoal-800/70 p-2 text-[0.92em] leading-relaxed whitespace-pre-wrap text-charcoal-200"
         >
           {output}
         </p>
       )}
 
       {status !== 'running' && output && (
-        <div className="mt-3">
+        <div className={`mt-3 ${sized ? 'flex min-h-0 flex-1 flex-col' : ''}`}>
           <OutputPreview
             markdown={output}
             heightClass="max-h-24"
             filename="agent-response"
+            fill={sized}
           />
           {status === 'done' && (
-            <p className="mt-0.5 px-1.5 text-[11px] text-charcoal-400">
+            <p className="mt-0.5 shrink-0 truncate px-1.5 text-[11px] text-charcoal-400">
               {usedModel && usedModel !== model && (
                 <span className="mr-1 text-amber-300">
                   via fallback {usedModel} ·

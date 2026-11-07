@@ -43,7 +43,7 @@ export default function OutputNode({
       label={data.label ?? 'Output'}
       selected={selected}
       hasTarget
-      resizable
+      minHeight={160}
       actions={
         isRunning ? (
           <button

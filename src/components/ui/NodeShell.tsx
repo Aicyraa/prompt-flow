@@ -5,6 +5,7 @@ import { useGraphStore } from '../../store/graphStore'
 import { selectNodeRun, useRunStore } from '../../store/runStore'
 import { useSettingsStore } from '../../store/settingsStore'
 import { useRunAction } from '../run/useRunAction'
+import { effectiveTextSize, textSizePx } from '../../lib/textSize'
 import { CloseIcon, Icon } from './Icon'
 import NodeIcon from './NodeIcon'
 import NodeStatus from './NodeStatus'
@@ -16,8 +17,9 @@ interface NodeShellProps {
   selected?: boolean
   hasTarget?: boolean
   hasSource?: boolean
-  resizable?: boolean
-  width?: number
+  /** Smallest size the user can drag the node down to, in px. */
+  minWidth?: number
+  minHeight?: number
   /** Extra controls rendered in the header, before the delete button. */
   actions?: ReactNode
   children: ReactNode
@@ -32,8 +34,8 @@ export default function NodeShell({
   selected = false,
   hasTarget = false,
   hasSource = false,
-  resizable = false,
-  width,
+  minWidth = 220,
+  minHeight = 110,
   actions,
   children,
 }: NodeShellProps) {
@@ -42,20 +44,22 @@ export default function NodeShell({
   const isRunning = useRunStore((s) => s.isRunning)
   const runFlow = useRunAction()
   const { status, error, errorKind } = useRunStore(selectNodeRun(id))
+  const ownSize = useGraphStore(
+    (st) => st.nodes.find((n) => n.id === id)?.data.fontSize,
+  )
+  const globalSize = useSettingsStore((st) => st.nodeTextSize)
+  const fontPx = textSizePx(effectiveTextSize(ownSize, globalSize))
 
   return (
     // The wrapper plays the one-off entrance; the shell keeps its own
     // run-state animation without the two fighting over `animation`.
     // Fade only: React Flow measures the connection handles once, on mount,
     // and a scale here would bake a wrong position into every edge.
-    <div
-      className={`animate-fade-in ${resizable ? 'h-full w-full' : ''}`}
-      style={!resizable && width != null ? { width } : undefined}
-    >
+    <div className="animate-fade-in h-full w-full">
       <div
-        className={`relative flex flex-col w-full rounded-xl border-2 bg-charcoal-900/95 shadow-2xl transition-[border-color,box-shadow] duration-150 ${
+        className={`relative flex h-full w-full min-w-0 flex-col rounded-xl border-2 bg-charcoal-900/95 shadow-2xl transition-[border-color,box-shadow] duration-150 ${
           status === 'running' ? 'animate-running-glow' : ''
-        } ${resizable ? 'h-full w-full min-w-0' : ''} ${
+        } ${
           status === 'error'
             ? 'border-rose-500/60'
             : selected
@@ -63,18 +67,16 @@ export default function NodeShell({
               : 'border-charcoal-700 hover:border-charcoal-500'
         }`}
       >
-        {resizable && (
-          <NodeResizer
-            minWidth={240}
-            minHeight={160}
-            maxWidth={1000}
-            maxHeight={1000}
-            isVisible={selected}
-            color="#a78bfa"
-            lineClassName="react-flow__resize-line"
-            handleClassName="react-flow__resize-handle"
-          />
-        )}
+        <NodeResizer
+          minWidth={minWidth}
+          minHeight={minHeight}
+          maxWidth={1000}
+          maxHeight={1000}
+          isVisible={selected}
+          color="#a78bfa"
+          lineClassName="react-flow__resize-line"
+          handleClassName="react-flow__resize-handle"
+        />
         <div className="flex items-center gap-2 border-b border-charcoal-800 py-2 pr-2 pl-3">
           <NodeIcon type={type} />
           <span className="flex-1 truncate text-xs font-semibold tracking-wide text-charcoal-100 uppercase">
@@ -93,8 +95,10 @@ export default function NodeShell({
           </button>
         </div>
 
+        {/* The node's text size applies here; text inside is sized in em. */}
         <div
-          className={`p-3 ${resizable ? 'flex min-h-0 flex-1 flex-col' : 'min-w-0'}`}
+          className="flex min-h-0 flex-1 flex-col p-3"
+          style={{ fontSize: fontPx }}
         >
           {children}
           {status === 'error' && error && (

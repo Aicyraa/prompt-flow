@@ -59,8 +59,6 @@ describe('MergeNode', () => {
 
   it('summarises the separator and labels', () => {
     setup({ separator: 'rule', labelled: true })
-    expect(
-      screen.getByText(/Horizontal rule · names above each part/),
-    ).toBeTruthy()
+    expect(screen.getByText(/Horizontal rule · with names/)).toBeTruthy()
   })
 })

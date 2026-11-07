@@ -15,6 +15,9 @@ export default function MergeNode({
   const nodes = useGraphStore((s) => s.nodes)
   const edges = useGraphStore((s) => s.edges)
   const { status, output } = useRunStore(selectNodeRun(id))
+  const sized = useGraphStore(
+    (s) => s.nodes.find((n) => n.id === id)?.height != null,
+  )
 
   // The branches feeding this node, in the order they are joined.
   const inputs = useMemo(() => {
@@ -36,7 +39,6 @@ export default function MergeNode({
       selected={selected}
       hasTarget
       hasSource
-      width={288}
     >
       {inputs.length === 0 ? (
         <p className="rounded-md border border-dashed border-charcoal-700 p-2.5 text-center text-xs text-charcoal-400">
@@ -45,7 +47,7 @@ export default function MergeNode({
       ) : (
         <ol
           aria-label="Joined in this order"
-          className="space-y-1 text-xs text-charcoal-200"
+          className="shrink-0 space-y-1 text-xs text-charcoal-200"
         >
           {inputs.map((n, i) => (
             <li
@@ -60,17 +62,20 @@ export default function MergeNode({
           ))}
         </ol>
       )}
-      <p className="mt-1.5 text-[11px] text-charcoal-400">
+      <p
+        className="mt-1.5 shrink-0 truncate text-[11px] text-charcoal-400"
+        title="Select the node to change how it joins"
+      >
         {separator}
-        {data.labelled ? ' · names above each part' : ''} · select the node to
-        change
+        {data.labelled ? ' · with names' : ''}
       </p>
       {status !== 'running' && output && (
-        <div className="mt-3">
+        <div className={`mt-3 ${sized ? 'flex min-h-0 flex-1 flex-col' : ''}`}>
           <OutputPreview
             markdown={output}
             heightClass="max-h-24"
             filename="merged"
+            fill={sized}
           />
         </div>
       )}

@@ -31,8 +31,10 @@ export default function RunSummaryLine() {
 
   if (isRunning || !text) return null
   return (
-    <div className="nodrag mt-1.5 flex shrink-0 items-start justify-between gap-2 px-0.5 text-[11px] text-charcoal-400">
-      <p title="Totals for the last run">{text}</p>
+    <div className="nodrag mt-1.5 flex shrink-0 items-center justify-between gap-2 px-0.5 text-[11px] text-charcoal-400">
+      <p className="min-w-0 truncate" title={text}>
+        {text}
+      </p>
       <button
         type="button"
         onClick={download}

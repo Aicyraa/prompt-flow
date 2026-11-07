@@ -120,3 +120,34 @@ describe('NodeShell retry', () => {
     ).toBe(true)
   })
 })
+
+describe('NodeShell text size', () => {
+  async function bodyFontSize(own?: string, global = 'md') {
+    const { useGraphStore } = await import('../../store/graphStore')
+    useGraphStore.setState({ nodes: [], edges: [] })
+    const node = useGraphStore.getState().addNode('llm', { x: 0, y: 0 })
+    if (own)
+      useGraphStore
+        .getState()
+        .updateNodeData(node.id, { fontSize: own as never })
+    useSettingsStore.setState({ nodeTextSize: global as never })
+    render(
+      <ReactFlowProvider>
+        <NodeShell id={node.id} type="llm" label="LLM">
+          <p>body</p>
+        </NodeShell>
+      </ReactFlowProvider>,
+    )
+    return (screen.getByText('body').parentElement as HTMLElement).style
+      .fontSize
+  }
+
+  it('uses the global size by default', async () => {
+    expect(await bodyFontSize(undefined, 'lg')).toBe('16px')
+  })
+
+  it('lets a node override the global size', async () => {
+    cleanup()
+    expect(await bodyFontSize('sm', 'xl')).toBe('11px')
+  })
+})

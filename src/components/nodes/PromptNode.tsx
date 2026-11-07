@@ -25,9 +25,9 @@ export default function PromptNode({
         onChange={(e) => updateNodeData(id, { template: e.target.value })}
         placeholder={'Summarize this: {{input}}'}
         rows={4}
-        className={`w-full resize-none rounded-md border border-charcoal-700 bg-charcoal-800/70 p-2 font-mono text-sm text-charcoal-50 placeholder-charcoal-400 outline-none ${FOCUS_RINGS.prompt}`}
+        className={`nodrag nowheel min-h-0 w-full flex-1 resize-none rounded-md border border-charcoal-700 bg-charcoal-800/70 p-2 font-mono text-[1.08em] text-charcoal-50 placeholder-charcoal-400 outline-none ${FOCUS_RINGS.prompt}`}
       />
-      <p className="mt-1.5 text-[11px] text-charcoal-400">
+      <p className="mt-1.5 shrink-0 truncate text-[11px] text-charcoal-400">
         Reference upstream outputs with{' '}
         <code className="text-amber-400/80">{'{{input}}'}</code>
       </p>
