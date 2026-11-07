@@ -1,9 +1,9 @@
 {
   ".github/workflows/ci.yml": {
-    "mtime": 1793987152.1288872,
-    "seen": 1794019862.5202634,
-    "ast_hash": "64e2d28d2e5c6a05346405c39ac8b095",
-    "semantic_hash": "64e2d28d2e5c6a05346405c39ac8b095"
+    "mtime": 1794033951.6512108,
+    "seen": 1794033994.678207,
+    "ast_hash": "c2082672eed5175955294b1cffbc8e9e",
+    "semantic_hash": ""
   },
   ".prettierrc.json": {
     "mtime": 1793987151.9657395,
@@ -12,10 +12,10 @@
     "semantic_hash": "404870b434b4a3e4a460b2130dfa5003"
   },
   "eslint.config.js": {
-    "mtime": 1793986399.0392025,
-    "seen": 1794019862.5202727,
-    "ast_hash": "3da498b4b4505bfd66ee3ba6456bf96c",
-    "semantic_hash": "3da498b4b4505bfd66ee3ba6456bf96c"
+    "mtime": 1794033625.9063146,
+    "seen": 1794033994.6782424,
+    "ast_hash": "7cdc61a6cacaf58deee0fa4fa9e03386",
+    "semantic_hash": ""
   },
   "opencode.json": {
     "mtime": 1793986399.0396268,
@@ -24,10 +24,10 @@
     "semantic_hash": "b8459f9a2ef394385ecd5edd39367aa0"
   },
   "package.json": {
-    "mtime": 1793990697.723954,
-    "seen": 1794019862.5202756,
-    "ast_hash": "06cc4b1fcaaa82b16f3570790cb74465",
-    "semantic_hash": "06cc4b1fcaaa82b16f3570790cb74465"
+    "mtime": 1794033644.1734874,
+    "seen": 1794033994.6782494,
+    "ast_hash": "6726e83cc7cb1fb62cc948ce234bfdeb",
+    "semantic_hash": ""
   },
   "postcss.config.js": {
     "mtime": 1793986399.0396268,
@@ -756,16 +756,16 @@
     "semantic_hash": "a3d39fa780ebff65444de257f291ce6c"
   },
   "tsconfig.node.json": {
-    "mtime": 1793986399.044026,
-    "seen": 1794019862.5204105,
-    "ast_hash": "e9bbdeaa927cefd9950271a34a895e12",
-    "semantic_hash": "e9bbdeaa927cefd9950271a34a895e12"
+    "mtime": 1794033644.7021132,
+    "seen": 1794033994.6786807,
+    "ast_hash": "4b8c0b4936d0a51b95758eb0e8c31d09",
+    "semantic_hash": ""
   },
   "vite.config.ts": {
-    "mtime": 1793990760.9449484,
-    "seen": 1794019862.5204117,
-    "ast_hash": "12688996072b1c75e4ea222b64df2d6f",
-    "semantic_hash": "12688996072b1c75e4ea222b64df2d6f"
+    "mtime": 1794033625.905948,
+    "seen": 1794033994.678683,
+    "ast_hash": "022651ba6af365417ef9564a57bc4ab7",
+    "semantic_hash": ""
   },
   "AGENTS.md": {
     "mtime": 1794019988.4111135,
@@ -1031,10 +1031,52 @@
     "ast_hash": "d281918fd4748d8d89af9c37fcd5e62a",
     "semantic_hash": ""
   },
+  "e2e/editing.spec.ts": {
+    "mtime": 1794033887.377302,
+    "seen": 1794033994.6782255,
+    "ast_hash": "f6bd9f7f7770d0cf014d574365599e7d",
+    "semantic_hash": ""
+  },
+  "e2e/first-run.spec.ts": {
+    "mtime": 1794033625.7203841,
+    "seen": 1794033994.678229,
+    "ast_hash": "f6fcb84b86be62da6947a0636d1624be",
+    "semantic_hash": ""
+  },
+  "e2e/flows-theme.spec.ts": {
+    "mtime": 1794033625.7413843,
+    "seen": 1794033994.6782324,
+    "ast_hash": "d2b5e3eeb4525d65c6a7c6f5f31da862",
+    "semantic_hash": ""
+  },
+  "e2e/run.spec.ts": {
+    "mtime": 1794033625.7683845,
+    "seen": 1794033994.6782346,
+    "ast_hash": "4f8a550353605e1d3cffa8d018a669ab",
+    "semantic_hash": ""
+  },
+  "e2e/support.ts": {
+    "mtime": 1794033625.0537317,
+    "seen": 1794033994.678237,
+    "ast_hash": "219ec1183b47d6b37bc49bbfb321ebca",
+    "semantic_hash": ""
+  },
+  "e2e/variables-merge.spec.ts": {
+    "mtime": 1794033625.8563848,
+    "seen": 1794033994.6782396,
+    "ast_hash": "439f831bf266e39d3cff36a5ebe8bda6",
+    "semantic_hash": ""
+  },
+  "playwright.config.ts": {
+    "mtime": 1794033686.903206,
+    "seen": 1794033994.6782522,
+    "ast_hash": "cd47bc3fd99bc0b8b73856c6d0b88b70",
+    "semantic_hash": ""
+  },
   "package-lock.json": {
-    "mtime": 1793990697.8039544,
-    "seen": 1794022341.2503712,
-    "ast_hash": "1005a4c59076396791bc4c2dad9629f2",
+    "mtime": 1794033644.292488,
+    "seen": 1794033994.678698,
+    "ast_hash": "1ef6f2a00785fbea3ed3c3b79c355e2f",
     "semantic_hash": ""
   }
 }
