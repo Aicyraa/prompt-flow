@@ -31,6 +31,7 @@ export type IconName =
   | 'history'
   | 'chevron'
   | 'layout'
+  | 'folder'
   | 'variable'
   | 'map'
   | 'search'
@@ -46,6 +47,9 @@ const STROKE: Record<Exclude<IconName, 'play' | 'spinner'>, ReactNode> = {
       <path d="M7.5 3.5c-1.7 0-2.5.8-2.5 2.3v1.6c0 1-.6 1.6-1.6 1.6 1 0 1.6.6 1.6 1.6v1.6c0 1.5.8 2.3 2.5 2.3" />
       <path d="M12.5 3.5c1.7 0 2.5.8 2.5 2.3v1.6c0 1 .6 1.6 1.6 1.6-1 0-1.6.6-1.6 1.6v1.6c0 1.5-.8 2.3-2.5 2.3" />
     </>
+  ),
+  folder: (
+    <path d="M2.5 6.5a1.5 1.5 0 0 1 1.5-1.5h3.2l1.6 1.8H16a1.5 1.5 0 0 1 1.5 1.5v6.2a1.5 1.5 0 0 1-1.5 1.5H4a1.5 1.5 0 0 1-1.5-1.5V6.5Z" />
   ),
   layout: (
     <>

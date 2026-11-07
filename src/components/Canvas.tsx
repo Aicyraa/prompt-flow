@@ -33,6 +33,7 @@ import { PANEL_WIDTH_PX } from './panels/panelLayout'
 
 // Opened rarely, so it loads on demand.
 const CommandPalette = lazy(() => import('./palette/CommandPalette'))
+const FlowsModal = lazy(() => import('./flows/FlowsModal'))
 
 const MINIMAP_COLORS: Record<string, string> = {
   input: '#34d399',
@@ -71,6 +72,7 @@ export default function Canvas() {
   useViewShortcuts()
   const showMinimap = useSettingsStore((s) => s.showMinimap)
   const paletteOpen = useSettingsStore((s) => s.paletteOpen)
+  const flowsOpen = useSettingsStore((s) => s.flowsOpen)
   // The settings panel docks on the right; keep the minimap clear of it.
   const panelOpen = useGraphStore(
     (s) => s.nodes.filter((n) => n.selected).length === 1,
@@ -223,6 +225,11 @@ export default function Canvas() {
           )}
         </ReactFlow>
       </div>
+      {flowsOpen && (
+        <Suspense fallback={null}>
+          <FlowsModal />
+        </Suspense>
+      )}
       {paletteOpen && (
         <Suspense fallback={null}>
           <CommandPalette onAdd={addNode} />

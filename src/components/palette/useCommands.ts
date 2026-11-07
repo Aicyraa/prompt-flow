@@ -40,6 +40,7 @@ export function useCommands(onAdd: (type: NodeType) => void): Command[] {
   const openHistory = useSettingsStore((s) => s.openHistory)
   const openGuide = useSettingsStore((s) => s.openGuide)
   const openVariables = useSettingsStore((s) => s.openVariables)
+  const openFlows = useSettingsStore((s) => s.openFlows)
   const runFlow = useRunAction()
   const report = useRunReport()
   const { exportFlow, pickFile } = useFlowFile()
@@ -178,6 +179,13 @@ export function useCommands(onAdd: (type: NodeType) => void): Command[] {
         run: report.download,
       },
       {
+        id: 'flows',
+        title: 'Saved flows…',
+        group: 'Flow',
+        keywords: 'open save new switch library projects',
+        run: openFlows,
+      },
+      {
         id: 'variables',
         title: 'Edit variables',
         group: 'Flow',
@@ -228,6 +236,7 @@ export function useCommands(onAdd: (type: NodeType) => void): Command[] {
     openSettings,
     openGuide,
     openVariables,
+    openFlows,
     report.available,
     report.download,
     tidy,

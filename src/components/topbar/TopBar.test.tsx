@@ -217,3 +217,25 @@ describe('TopBar variables', () => {
     ).toBeTruthy()
   })
 })
+
+describe('TopBar saved flows', () => {
+  it('opens the flows dialog and shows the open flow’s name', async () => {
+    const { useFlowLibrary } = await import('../../store/flowLibraryStore')
+    const user = userEvent.setup()
+    useFlowLibrary.setState({ flows: [], activeId: null })
+    useSettingsStore.setState({ flowsOpen: false })
+    setup()
+    await user.click(screen.getByRole('button', { name: 'Saved flows' }))
+    expect(useSettingsStore.getState().flowsOpen).toBe(true)
+
+    cleanup()
+    useFlowLibrary.getState().saveAs('Quarterly review')
+    setup()
+    expect(
+      screen.getByRole('button', {
+        name: 'Saved flows (open: Quarterly review)',
+      }),
+    ).toBeTruthy()
+    useFlowLibrary.setState({ flows: [], activeId: null })
+  })
+})

@@ -3,6 +3,7 @@ import { ReactFlowProvider } from '@xyflow/react'
 import { Toaster } from 'react-hot-toast'
 import Canvas from './components/Canvas'
 import { syncModels } from './store/connection'
+import { startFlowAutosave } from './store/flowLibraryStore'
 import { useRunStore } from './store/runStore'
 import { useSettingsStore } from './store/settingsStore'
 
@@ -33,6 +34,8 @@ export default function App() {
   // Load the model list once (cached for 24h, refreshed in the background).
   useEffect(() => {
     void syncModels()
+    // Keep the open saved flow in step with the canvas.
+    return startFlowAutosave()
   }, [])
 
   return (

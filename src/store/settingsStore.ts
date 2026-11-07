@@ -69,6 +69,7 @@ interface SettingsStore {
   paletteOpen: boolean
   guideOpen: boolean
   variablesOpen: boolean
+  flowsOpen: boolean
   setByokEnabled: (enabled: boolean) => void
   setApiKey: (key: string) => void
   setKeyPersistence: (persistence: KeyPersistence) => void
@@ -89,6 +90,8 @@ interface SettingsStore {
   closeGuide: () => void
   openVariables: () => void
   closeVariables: () => void
+  openFlows: () => void
+  closeFlows: () => void
   toggleFavourite: (id: string) => void
   pushRecent: (id: string) => void
 }
@@ -116,6 +119,7 @@ export const useSettingsStore = create<SettingsStore>()(
       paletteOpen: false,
       guideOpen: false,
       variablesOpen: false,
+      flowsOpen: false,
       setByokEnabled: (byokEnabled) => set({ byokEnabled }),
 
       setApiKey: (key) => {
@@ -168,6 +172,8 @@ export const useSettingsStore = create<SettingsStore>()(
       closeGuide: () => set({ guideOpen: false }),
       openVariables: () => set({ variablesOpen: true }),
       closeVariables: () => set({ variablesOpen: false }),
+      openFlows: () => set({ flowsOpen: true }),
+      closeFlows: () => set({ flowsOpen: false }),
 
       toggleFavourite: (id) =>
         set((s) => ({

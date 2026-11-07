@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { NodeType } from '../../types/flow'
+import { useFlowLibrary } from '../../store/flowLibraryStore'
 import { useGraphStore } from '../../store/graphStore'
 import { missingVariables } from '../../lib/variables'
 import { useRunStore } from '../../store/runStore'
@@ -62,6 +63,10 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
   const toggleMinimap = useSettingsStore((s) => s.toggleMinimap)
   const nodeCount = useGraphStore((s) => s.nodes.length)
   const openVariables = useSettingsStore((s) => s.openVariables)
+  const openFlows = useSettingsStore((s) => s.openFlows)
+  const flowName = useFlowLibrary(
+    (s) => s.flows.find((f) => f.id === s.activeId)?.name,
+  )
   const missingCount = useGraphStore(
     (s) => missingVariables(s.nodes, s.variables).length,
   )
@@ -90,6 +95,21 @@ export default function TopBar({ onAdd }: { onAdd: (type: NodeType) => void }) {
         aria-label="Toolbar"
         className="relative z-20 flex h-12 shrink-0 items-center gap-2 border-b border-charcoal-800 bg-charcoal-900 px-3"
       >
+        <button
+          type="button"
+          onClick={openFlows}
+          title="Saved flows"
+          aria-label={
+            flowName ? `Saved flows (open: ${flowName})` : 'Saved flows'
+          }
+          className="flex h-8 max-w-44 items-center gap-1.5 rounded-md px-2 text-xs font-medium text-charcoal-200 transition-[color,background-color,transform] hover:bg-charcoal-800 hover:text-charcoal-50 active:scale-95"
+        >
+          <Icon
+            name="folder"
+            className="h-3.5 w-3.5 shrink-0 text-charcoal-400"
+          />
+          <span className="truncate">{flowName ?? 'Flows'}</span>
+        </button>
         <NodePalette onAdd={onAdd} />
 
         <div className="flex items-center">
