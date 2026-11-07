@@ -21,6 +21,8 @@ interface OutputPreviewProps {
   filename?: string
   /** Fill the parent's height and scroll inside, instead of clipping. */
   fill?: boolean
+  /** Text is still arriving: follow the end and show a live marker. */
+  streaming?: boolean
 }
 
 const action =
@@ -32,6 +34,7 @@ export default function OutputPreview({
   heightClass = 'max-h-44',
   filename = 'output',
   fill = false,
+  streaming = false,
 }: OutputPreviewProps) {
   const [open, setOpen] = useState(false)
   const [clipped, setClipped] = useState(false)
@@ -44,6 +47,12 @@ export default function OutputPreview({
   const display = looksLikeJson(markdown)
     ? '```json\n' + markdown + '\n```'
     : file.content
+
+  // While text streams in, keep the newest line in view.
+  useLayoutEffect(() => {
+    const el = bodyRef.current
+    if (streaming && el) el.scrollTop = el.scrollHeight
+  }, [display, streaming])
 
   useLayoutEffect(() => {
     const el = bodyRef.current
@@ -75,6 +84,18 @@ export default function OutputPreview({
         >
           <MarkdownView markdown={display} />
         </div>
+        {streaming && (
+          <span
+            role="status"
+            className="absolute right-2 bottom-2 flex items-center gap-1.5 rounded-full bg-charcoal-900/90 px-2 py-0.5 text-[10px] text-amber-300 shadow"
+          >
+            <span
+              aria-hidden="true"
+              className="h-1.5 w-1.5 animate-pulse rounded-full bg-amber-400"
+            />
+            Generating…
+          </span>
+        )}
         {clipped && !fill && (
           <div
             aria-hidden="true"

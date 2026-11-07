@@ -50,3 +50,50 @@ describe('OutputNode run controls', () => {
     expect(stop).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('OutputNode streaming and summary', () => {
+  it('shows an upstream node’s partial text while it is still generating', async () => {
+    const { useGraphStore } = await import('../../store/graphStore')
+    useGraphStore.setState({
+      nodes: [],
+      edges: [{ id: 'e1', source: 'llm1', target: 'o1' }],
+    })
+    useRunStore.setState({
+      isRunning: true,
+      nodes: { llm1: { status: 'running', output: 'Partial **answer**' } },
+    })
+    setup()
+    expect(await screen.findByText('Generating…')).toBeTruthy()
+    expect(screen.getByText(/Partial/)).toBeTruthy()
+    expect(screen.queryByText(/Run the flow to see/)).toBeNull()
+  })
+
+  it('shows tokens, cost and steps for the finished run', async () => {
+    const { useGraphStore } = await import('../../store/graphStore')
+    useGraphStore.setState({ nodes: [], edges: [] })
+    useRunStore.setState({
+      isRunning: false,
+      nodes: {
+        llm1: {
+          status: 'done',
+          output: 'x',
+          startedAt: 1000,
+          endedAt: 3000,
+          usage: { promptTokens: 100, completionTokens: 50, cost: 0.002 },
+        },
+        o1: {
+          status: 'done',
+          output: 'Final text',
+          startedAt: 3000,
+          endedAt: 3100,
+        },
+      },
+    })
+    setup()
+    expect(
+      await screen.findByText(
+        /2 steps · 150 tokens \(100 in \/ 50 out\) · \$0\.002/,
+      ),
+    ).toBeTruthy()
+  })
+})
